@@ -1,0 +1,91 @@
+
+h2 {
+  font-size: 3rem;
+  color: white; /* Color del texto para que contraste con el fondo */
+  background-color: var(--accent-color); /* Fondo para el título */
+  padding: 0.5rem 1.5rem; /* Relleno para que el fondo se vea bien */
+  border-radius: 5px; /* Bordes ligeramente redondeados */
+  position: relative;
+  z-index: 1; /* Asegura que el texto esté sobre el borde animado */
+}
+.register-container {
+ display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+  width: 100%;
+  /* El degradado del fondo, lo añadimos aquí */
+  background: linear-gradient(135deg, var(--background-color-start), var(--background-color-end));
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.title {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+
+.register-button {
+  background-color: #7a42a0 !important;
+  color: white !important;
+  padding: 15px 30px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  outline: none !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: block !important;
+  transition: all 0.3s ease;
+}
+
+
+.register-button:hover {
+  transform: translateY(-3px);
+  background-color: var(--accent-color) !important;
+}
+
+
+a {
+  color: #5d2b78;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+

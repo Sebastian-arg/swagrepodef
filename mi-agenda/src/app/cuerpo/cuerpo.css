@@ -1,0 +1,84 @@
+/* componente cuerpo */
+:host {
+  --secondary-color: #F0ECC1;
+
+  --accent-color: #E4A0A6;
+}
+
+
+.welcome-box {
+  position: relative;
+  padding: 2rem 4rem;
+  margin-bottom: 2rem;
+  overflow: hidden;
+  width: fit-content;
+  min-width: 400px;
+  height: 100px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.welcome-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--secondary-color);
+  animation: line-animation 4s linear infinite;
+}
+
+h1 {
+  font-size: 3rem;
+  color: white;
+  background-color: var(--accent-color);
+  padding: 0.5rem 1.5rem;
+  border-radius: 5px;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes line-animation {
+  0% {
+    clip-path: polygon(0% 0%, 2px 0%, 2px 2px, 0% 2px);
+  }
+  25% {
+    clip-path: polygon(100% 0%, 100% 2px, 0% 2px, 0% 0%);
+  }
+  50% {
+    clip-path: polygon(100% 0%, 100% 100%, 98% 100%, 98% 0%);
+  }
+  75% {
+    clip-path: polygon(100% 100%, 0% 100%, 0% 98%, 100% 98%);
+  }
+  100% {
+    clip-path: polygon(0% 100%, 0% 0%, 2px 0%, 2px 100%);
+  }
+}
+
+
+.buttons-section {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.login-button, 
+.register-button {
+  background-color: #7a42a0 !important;
+  color: white !important;
+  padding: 15px 30px !important;
+  border-radius: 8px !important;
+  border: none !important;
+  outline: none !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: block !important;
+  transition: all 0.3s ease;
+}
+
+.login-button:hover, 
+.register-button:hover {
+  transform: translateY(-3px);
+  background-color: var(--accent-color) !important;
+}

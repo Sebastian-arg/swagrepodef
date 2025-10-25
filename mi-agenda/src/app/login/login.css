@@ -1,0 +1,87 @@
+
+h2 {
+  font-size: 3rem;
+  color: white; /* Color del texto para que contraste con el fondo */
+  background-color: var(--accent-color); /* Fondo para el título */
+  padding: 0.5rem 1.5rem; /* Relleno para que el fondo se vea bien */
+  border-radius: 5px; /* Bordes ligeramente redondeados */
+  position: relative;
+  z-index: 1; /* Asegura que el texto esté sobre el borde animado */
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
+  width: 100%;
+  /* El degradado del fondo, lo añadimos aquí */
+  background: linear-gradient(135deg, var(--background-color-start), var(--background-color-end));
+}
+
+.login-card {
+  /* Fondo semi-transparente para la tarjeta */
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px 30px;
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+.title {
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 2.5rem;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  color: #555;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-sizing: border-box;
+}
+
+.btnLogin {
+  width: 100%;
+  padding: 12px;
+  background-color: #5d2b78;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.btnLogin:hover {
+  background-color: #7a42a0;
+}
+
+a {
+  color: #5d2b78;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+a:hover {
+  text-decoration: underline;
+}

@@ -1,0 +1,21 @@
+/* componente app-root */
+:host {
+  --primary-color: #752174;
+  --secondary-color: #F0ECC1;
+  --background-color: #581971;
+  --button-color: #752174;
+  --accent-color: #E4A0A6;
+  --background-color-start: #3B103A;
+  --background-color-end: #ff1b98;
+}
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--background-color-start), var(--background-color-end));
+  color: var(--primary-color);
+  text-align: center;
+}
