@@ -1,0 +1,70 @@
+/* Estilos para el sidebar derecho */
+.semana-sidebar {
+    background-color: #f7f9fc; /* Fondo del sidebar */
+    padding: 20px;
+    border-left: 1px solid #e5e7eb;
+    overflow-y: auto; /* Permite scroll si hay muchos eventos */
+}
+
+.sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+h3 {
+    font-size: 1.2rem;
+    color: #1f2937;
+    margin: 0;
+}
+
+.btn-nuevo {
+    background-color: #10b981; /* Verde */
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-nuevo:hover {
+    background-color: #059669;
+}
+
+/* Estilos de las Tarjetas de Eventos */
+.evento-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.fecha {
+    font-size: 0.8rem;
+    color: #6b7280;
+    margin-bottom: 5px;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.detalle strong {
+    color: #1d4ed8;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.descripcion {
+    font-size: 0.9rem;
+    color: #4b5563;
+    margin: 0;
+}

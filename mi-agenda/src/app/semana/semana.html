@@ -1,0 +1,21 @@
+<div class="semana-sidebar">
+    <div class="sidebar-header">
+        <h3>Esta Semana</h3>
+        <button class="btn-nuevo"><i class="fa-solid fa-plus"></i> Nuevo Evento</button>
+    </div>
+
+    <!-- Lista de Eventos -->
+    @for (evento of eventos; track $index) {
+        <div class="evento-card">
+            <p class="fecha">{{ evento.fecha }}</p>
+            <div class="detalle">
+                <strong>{{ evento.hora }} - {{ evento.titulo }}</strong>
+                <p class="descripcion">{{ evento.descripcion }}</p>
+            </div>
+        </div>
+    }
+
+    @empty {
+        <p class="no-events">No hay eventos próximos esta semana.</p>
+    }
+</div>

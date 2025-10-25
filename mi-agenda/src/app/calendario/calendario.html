@@ -1,0 +1,109 @@
+<!-- Estructura principal de 3 columnas -->
+<div class="app-container">
+    
+    <!-- LEFT SIDEBAR (Navegación) - Usando el HTML que proporcionaste -->
+    <div class="sidebar">
+        <h2 class="logo">🗓️AgendaPersonal</h2>
+        <nav class="menu">
+            <!-- Usamos 'href' temporalmente en lugar de 'routerLink' para este ejemplo simple -->
+            <a href="#" class="active">
+                <i class="fa-regular fa-calendar"></i> Calendario
+            </a>
+            <a href="#">
+                <i class="fa-regular fa-clock"></i> Eventos
+            </a>
+            <a href="#">
+                <i class="fa-regular fa-circle-check"></i> Tareas
+            </a>
+             <a href="#">
+                <i class="fa-solid fa-gear"></i> Configuración
+            </a>
+        </nav>
+    </div>
+
+    <!-- MAIN CONTENT AREA (Header y Calendario) -->
+    <main class="main-content">
+        <!-- HEADER - Usando el HTML que proporcionaste (adaptado a placeholder de imagen) -->
+        <header class="header">
+            <div class="left">
+                <button class="btn-home"><i class="fa-solid fa-house"></i> Inicio</button>
+            </div>
+            <div class="right">
+                <img src="https://placehold.co/40x40/4F46E5/FFFFFF?text=P" alt="Perfil" class="profile-img" />
+                <button class="btn-logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <!-- CONTROLES Y VISTA DEL CALENDARIO -->
+        <div class="calendar-view">
+            <div class="calendar-controls">
+                <!-- Botones de navegación (Atrás, Hoy, Adelante) -->
+                <div class="nav-buttons">
+                    <button class="control-btn" (click)="navigate(-1)" aria-label="Anterior">&leftarrow;</button>
+                    <button class="control-btn" (click)="setToday()">Hoy</button>
+                    <button class="control-btn" (click)="navigate(1)" aria-label="Siguiente">&rightarrow;</button>
+                </div>
+                
+                <!-- Título: Muestra el mes/año actual -->
+                <h2 class="month-year">{{ current() | date:'MMMM yyyy' | titlecase }}</h2> 
+                
+                <!-- Alternador de Vista Mes/Semana -->
+                <div class="view-switch">
+                    <button 
+                        class="view-btn" 
+                        [class.active]="viewMode() === 'month'"
+                        (click)="setViewMode('month')">Mes
+                    </button>
+                    <button 
+                        class="view-btn" 
+                        [class.active]="viewMode() === 'week'"
+                        (click)="setViewMode('week')">Semana
+                    </button>
+                </div>
+            </div>
+            
+            <!-- CONTENIDO PRINCIPAL DEL CALENDARIO (Alterna Mes/Semana) -->
+            <div class="calendar-content">
+                @if (viewMode() === 'month') {
+                    <div class="calendar-month-grid">
+                        <!-- Nombres de los días de la semana -->
+                        @for (dayName of dayNames; track $index) {
+                            <div class="day-name">{{ dayName }}</div>
+                        }
+                        
+                        <!-- Celdas del Mes - Usando el monthGrid() computado -->
+                        @for (day of monthGrid(); track day.date.getTime()) {
+                            <div 
+                                class="calendar-day" 
+                                [class.is-current-month]="day.isCurrentMonth"
+                                [class.is-today]="day.isToday">
+                                <span class="text-xs sm:text-sm font-semibold">{{ day.date.getDate() }}</span>
+                                <!-- Placeholder de evento simple -->
+                                @if (day.isToday) {
+                                    <span class="dot bg-indigo-500"></span>
+                                }
+                                @if (day.date.getDate() === 5 && day.isCurrentMonth) {
+                                    <span class="text-xs text-green-600 mt-1">Tarea</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                } @else {
+                    <!-- Vista de Semana Pendiente de Implementar (Placeholder) -->
+                    <div class="calendar-week-view">
+                        <h3 class="text-xl font-bold mb-2">Vista Semanal (Próximamente)</h3>
+                        <p class="text-gray-600">Aquí se mostrará el detalle de la semana que inicia el {{ current() | date:'dd/MM/yyyy' }}.</p>
+                        <div class="p-4 mt-4 bg-gray-50 rounded-lg border border-gray-200">
+                             <p class="text-sm font-medium text-gray-500">Usa los botones de navegación para avanzar o retroceder 7 días.</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+    </main>
+    
+    <!-- RIGHT SIDEBAR (Eventos de la Semana) - Usamos el componente separado -->
+    <app-semana></app-semana>
+
+</div>
