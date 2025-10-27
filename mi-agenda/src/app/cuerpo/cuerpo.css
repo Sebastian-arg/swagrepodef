@@ -1,10 +1,4 @@
 /* componente cuerpo */
-:host {
-  --secondary-color: #F0ECC1;
-
-  --accent-color: #E4A0A6;
-}
-
 
 .welcome-box {
   position: relative;
