@@ -1,9 +1,13 @@
-import { Component, signal, computed, ChangeDetectionStrategy, OnInit } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, signal, computed, ChangeDetectionStrategy, OnInit, LOCALE_ID } from '@angular/core';
+import { CommonModule, DatePipe, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import localeEsAr from '@angular/common/locales/es-AR'; // Importamos el locale para español
 import { SemanaComponent } from '../semana/semana';
+
+// 1. REGISTRAMOS EL LOCALE ESPAÑOL (Necesario para que el DatePipe funcione en español)
+registerLocaleData(localeEsAr, 'es-AR'); 
 
 type ViewMode = 'month' | 'week';
 
@@ -16,15 +20,20 @@ interface CalendarDay {
 interface CalendarEvent {
   id: number;
   titulo: string;
-  fecha: string;
+  fecha: string; // ISO date string 'YYYY-MM-DD'
   descripcion?: string;
 }
 
 @Component({
   selector: 'app-calendario',
   standalone: true,
+  // Asegúrate de que HttpClientModule esté en imports para usar el HttpClient
   imports: [CommonModule, DatePipe, SemanaComponent, FormsModule, HttpClientModule], 
-  providers: [DatePipe],  
+  providers: [
+    DatePipe,
+    // 2. PROVEEMOS EL LOCALE ESPAÑOL A TODA LA VISTA
+    { provide: LOCALE_ID, useValue: 'es-AR' } // Establece el idioma para pipes
+  ],  
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './calendario.html',
   styleUrls: ['./calendario.css']
@@ -33,6 +42,7 @@ export class CalendarioComponent implements OnInit {
 
   viewMode = signal<ViewMode>('month');
   current = signal<Date>(new Date());
+  // Días de la semana en español, para la cabecera del calendario
   readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
 
@@ -188,7 +198,7 @@ export class CalendarioComponent implements OnInit {
     this.http.post(apiUrl, {}).subscribe({
       next: () => {
         console.log('Sesión cerrada en el servidor.');
-  },
+    },
       error: (error) => {
         console.warn('Error al cerrar sesión en Laravel. Limpiando sesión local...', error);
       },
