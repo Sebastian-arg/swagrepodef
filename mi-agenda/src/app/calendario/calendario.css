@@ -21,7 +21,7 @@
     --text-soft: #6B4C6E; /* Texto secundario */
     --text-light: #FFFFFF;
     --today-bg: #FFE3EB; /* Fondo del día de hoy (Rosa claro) */
-    --calendar-hover-bg: #FFF1F7; /* Hover de celda */
+    --calendar-hover-bg: #1eff00; /* Hover de celda */
 }
 
 /* ----------------------------------------------------
@@ -80,6 +80,7 @@
     align-items: center;
     margin-bottom: 2rem;
     color: var(--primary-color);
+    justify-content: center;
 }
 .logo-icon {
     font-size: 1.5rem;
@@ -185,14 +186,16 @@
 .btn-home:hover { background-color: var(--dark-color); }
 .btn-home i { margin-right: 5px; }
 
-.profile-img {
+
+/* NO SE USA MAS SE PUEDE BORRAR (lo dejo por las dudas)*/
+/* .profile-img {
     width: 40px;
     height: 40px;
     border-radius: 50%;
     object-fit: cover;
-    /* margin-right: 16px; */
     border: 2px solid var(--accent-color);
 }
+/* NO SE USA MAS SE PUEDE BORRAR (lo dejo por las dudas)*/
 
 .btn-logout {
     background: var(--primary-color); /* Color sólido como en la imagen */
@@ -526,4 +529,48 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+}
+
+/* ----------------------------------------------------
+ * 7. PERFIL + CERRAR SESIÓN EN LA SIDEBAR
+ * ---------------------------------------------------- */
+.sidebar-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.sidebar-footer .profile-img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--accent-color);
+    margin-bottom: 12px;
+}
+
+.sidebar-footer .btn-logout {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: background-color 0.2s;
+}
+
+.sidebar-footer .btn-logout:hover {
+    background-color: var(--dark-color);
+}
+
+@media (max-width: 1024px) {
+    .sidebar-footer span { display: none; } /* oculta texto y deja solo el ícono */
+    .sidebar-footer .btn-logout { justify-content: center; width: 100%; }
 }
