@@ -7,26 +7,27 @@
         </div>
         
         <nav class="menu">
-            <a href="#">
-                <i class="fa-solid fa-house"></i> <span>Inicio</span>
-            </a>
+          <a routerLink="/inicio" routerLinkActive="active">
+              <i class="fa-solid fa-house"></i> <span>Inicio</span>
+          </a>
 
-            <a href="#" class="active">
-                <i class="fa-regular fa-calendar"></i> <span>Calendario</span>
-            </a>
-            
-            <button class="menu-item" (click)="openEventosModal($event)">
-                <i class="fa-regular fa-clock"></i> <span>Eventos</span>
-            </button>
-            
-            <a href="#">
-                <i class="fa-regular fa-circle-check"></i> <span>Tareas</span>
-            </a>
+          <a routerLink="/calendario" routerLinkActive="active">
+              <i class="fa-regular fa-calendar"></i> <span>Calendario</span>
+          </a>
 
-            <a href="#">
-                <i class="fa-solid fa-gear"></i> <span>Configuración</span>
-            </a>
+          <button class="menu-item" (click)="openEventosModal($event)">
+              <i class="fa-regular fa-clock"></i> <span>Eventos</span>
+          </button>
+
+          <a routerLink="/tareas" routerLinkActive="active">
+              <i class="fa-regular fa-circle-check"></i> <span>Tareas</span>
+          </a>
+
+          <a routerLink="/configuracion" routerLinkActive="active">
+              <i class="fa-solid fa-gear"></i> <span>Configuración</span>
+          </a>
         </nav>
+
 
         <!-- NUEVO BLOQUE INFERIOR -->
         <div class="sidebar-footer">

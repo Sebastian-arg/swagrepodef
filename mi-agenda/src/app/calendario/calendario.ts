@@ -193,21 +193,26 @@ export class CalendarioComponent implements OnInit {
   }
 
   logout() {
-    const apiUrl = 'http://localhost:8000/api/logout'; 
+  const apiUrl = 'http://localhost:8000/api/logout';
+  const token = localStorage.getItem('user_token');
 
-    this.http.post(apiUrl, {}).subscribe({
-      next: () => {
-        console.log('Sesión cerrada en el servidor.');
+  this.http.post(apiUrl, {}, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  }).subscribe({
+    next: () => {
+      console.log('Sesión cerrada en el servidor.');
     },
-      error: (error) => {
-        console.warn('Error al cerrar sesión en Laravel. Limpiando sesión local...', error);
-      },
-      complete: () => {
-        localStorage.removeItem('user_token');
-        localStorage.removeItem('user_details');
+    error: (error) => {
+      console.warn('Error al cerrar sesión en Laravel. Limpiando sesión local...', error);
+    },
+    complete: () => {
+      localStorage.removeItem('user_token');
+      localStorage.removeItem('user_details');
+      this.router.navigate(['/login']);
+    }
+  });
+ }
 
-        this.router.navigate(['/login']);
-      }
-    });
-  }
 }
