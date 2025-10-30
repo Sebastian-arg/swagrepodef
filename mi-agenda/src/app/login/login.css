@@ -15,6 +15,7 @@ h2 {
   align-items: center;
   min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
   width: 100%;
+
 }
 
 .login-card {
