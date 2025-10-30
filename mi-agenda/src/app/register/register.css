@@ -1,4 +1,3 @@
-
 h2 {
   font-size: 3rem;
   color: white; /* Color del texto para que contraste con el fondo */
@@ -14,8 +13,7 @@ h2 {
   align-items: center;
   min-height: 100vh; /* Asegura que ocupe toda la altura de la ventana */
   width: 100%;
-  /* El degradado del fondo, lo añadimos aquí */
-  background: linear-gradient(135deg, var(--background-color-start), var(--background-color-end));
+
 }
 
 .register-card {
@@ -69,6 +67,7 @@ input {
   text-decoration: none !important;
   display: block !important;
   transition: all 0.3s ease;
+  margin: 20px auto 0 auto !important;
 }
 
 

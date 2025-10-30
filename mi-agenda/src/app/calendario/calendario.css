@@ -37,6 +37,7 @@
     height: 100%;
     width: 100% !important;
     overflow: hidden;
+    grid-template-columns: 240px 1fr; /* Quita la tercera columna */
 }
 
 @media (max-width: 1024px) {
@@ -575,7 +576,7 @@
 }
 
 .sidebar-footer .btn-logout:hover {
-    background-color: var(--dark-color);
+    background-color: var(--accent-color);
 }
 
 @media (max-width: 1024px) {

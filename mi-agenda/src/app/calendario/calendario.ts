@@ -1,13 +1,29 @@
-import { Component, signal, computed, ChangeDetectionStrategy, OnInit, LOCALE_ID } from '@angular/core';
-import { CommonModule, DatePipe, registerLocaleData } from '@angular/common';
+import {
+  Component,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+  OnInit,
+  LOCALE_ID
+} from '@angular/core';
+
+import {
+  CommonModule,
+  DatePipe,
+  registerLocaleData
+} from '@angular/common';
+
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
-import localeEsAr from '@angular/common/locales/es-AR'; // Importamos el locale para español
-import { SemanaComponent } from '../semana/semana';
 
-// 1. REGISTRAMOS EL LOCALE ESPAÑOL (Necesario para que el DatePipe funcione en español)
-registerLocaleData(localeEsAr, 'es-AR'); 
+import localeEsAr from '@angular/common/locales/es-AR';
+import { SemanaComponent } from '../semana/semana';
+import { EventosService } from '../services/eventos.service';
+
+registerLocaleData(localeEsAr, 'es-AR');
+
+
 
 type ViewMode = 'month' | 'week';
 
@@ -20,31 +36,42 @@ interface CalendarDay {
 interface CalendarEvent {
   id: number;
   titulo: string;
-  fecha: string; // ISO date string 'YYYY-MM-DD'
+  fecha_inicio: string;
+  fecha_fin?: string;
   descripcion?: string;
+  etiqueta?: string;
 }
 
 @Component({
   selector: 'app-calendario',
   standalone: true,
-  // Asegúrate de que HttpClientModule esté en imports para usar el HttpClient
-  imports: [CommonModule, DatePipe, SemanaComponent, FormsModule, HttpClientModule], 
+  imports: [CommonModule, FormsModule, HttpClientModule, SemanaComponent],
   providers: [
     DatePipe,
-    // 2. PROVEEMOS EL LOCALE ESPAÑOL A TODA LA VISTA
-    { provide: LOCALE_ID, useValue: 'es-AR' } // Establece el idioma para pipes
-  ],  
+    { provide: LOCALE_ID, useValue: 'es-AR' }
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './calendario.html',
+  templateUrl: '/calendario.html',
   styleUrls: ['./calendario.css']
 })
 export class CalendarioComponent implements OnInit {
 
+  // Estado del calendario
   viewMode = signal<ViewMode>('month');
   current = signal<Date>(new Date());
-  // Días de la semana en español, para la cabecera del calendario
-  readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+  // Estado de eventos
+  eventos = signal<CalendarEvent[]>([]);
+  modalEventosOpen = signal(false);
+
+  agregando = signal(false);
+  editando = signal<number | null>(null);
+
+  eventoTitulo = '';
+  eventoFecha = '';
+  eventoDescripcion = '';
+
+  readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   monthGrid = computed<CalendarDay[]>(() => {
     const today = new Date();
@@ -54,67 +81,50 @@ export class CalendarioComponent implements OnInit {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
-    const firstDayOfMonth = new Date(year, month, 1);
-    let startDayOfWeek = firstDayOfMonth.getDay();
+    const firstDay = new Date(year, month, 1);
+    const startDayOfWeek = firstDay.getDay();
 
-    const startDate = new Date(firstDayOfMonth);
-    startDate.setDate(firstDayOfMonth.getDate() - startDayOfWeek);
+    const startDate = new Date(firstDay);
+    startDate.setDate(firstDay.getDate() - startDayOfWeek);
 
     const days: CalendarDay[] = [];
-    const numDaysToShow = 42; 
+    const total = 42;
 
-    for (let i = 0; i < numDaysToShow; i++) {
+    for (let i = 0; i < total; i++) {
       const date = new Date(startDate);
       date.setDate(startDate.getDate() + i);
-      const isCurrentMonth = date.getMonth() === month;
-      const isToday = date.getTime() === today.getTime();
-      days.push({ date, isCurrentMonth, isToday });
+
+      days.push({
+        date,
+        isCurrentMonth: date.getMonth() === month,
+        isToday: date.getTime() === today.getTime()
+      });
     }
+
     return days;
   });
 
-  setViewMode(mode: ViewMode): void { this.viewMode.set(mode); }
-  navigate(amount: number): void {
-    this.current.update(currentDate => {
-      const newDate = new Date(currentDate.getTime());
-      if (this.viewMode() === 'month') newDate.setMonth(newDate.getMonth() + amount);
-      else newDate.setDate(newDate.getDate() + (amount * 7)); 
-      return newDate;
-    });
-  }
-  setToday(): void { this.current.set(new Date()); }
-
-  modalEventosOpen = signal(false);
-  eventos = signal<CalendarEvent[]>([]);
-  agregando = signal(false);
-  editando = signal<number | null>(null);
-
-  eventoTitulo = '';
-  eventoFecha = ''; 
-  eventoDescripcion = '';
-  private nextId = 1;
-
   constructor(
-    private datePipe: DatePipe, 
-    private router: Router, 
-    private http: HttpClient
+    private datePipe: DatePipe,
+    private router: Router,
+    private http: HttpClient,
+    private eventosService: EventosService
   ) {}
 
   ngOnInit(): void {
-    const currentMonth = this.current().getMonth() + 1; // 1-12
-    const currentYear = this.current().getFullYear();
-    this.eventos.set([
-      { 
-        id: this.nextId++, 
-        titulo: 'Reunión de proyecto', 
-        fecha: `${currentYear}-${String(currentMonth).padStart(2, '0')}-05`, 
-        descripcion: 'Preparar presentación final.' 
-      }
-    ]);
+    this.cargarEventos();
   }
 
-  openEventosModal(event?: Event) {
-    if (event) event.preventDefault();
+  /** ✅ Cargar eventos desde Laravel */
+  cargarEventos() {
+    this.eventosService.getAll().subscribe({
+      next: (data) => this.eventos.set(data),
+      error: (err) => console.error("ERROR cargando eventos:", err)
+    });
+  }
+
+  /** ✅ Modal */
+  openEventosModal() {
     this.modalEventosOpen.set(true);
     this.cancelForm(false);
   }
@@ -124,95 +134,131 @@ export class CalendarioComponent implements OnInit {
     this.cancelForm(false);
   }
 
+  /** ✅ Nueva creación */
   startAgregar() {
     this.agregando.set(true);
     this.editando.set(null);
+
     this.eventoTitulo = '';
     this.eventoFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
     this.eventoDescripcion = '';
   }
 
+  /** ✅ Edición */
   startEditar(id: number) {
-    const found = this.eventos().find(e => e.id === id);
-    if (!found) return;
-    this.editando.set(id);
+    const evt = this.eventos().find(e => e.id === id);
+    if (!evt) return;
+
     this.agregando.set(false);
-    this.eventoTitulo = found.titulo;
-    this.eventoFecha = found.fecha;
-    this.eventoDescripcion = found.descripcion || '';
+    this.editando.set(id);
+
+    this.eventoTitulo = evt.titulo;
+    this.eventoFecha = evt.fecha_inicio;
+    this.eventoDescripcion = evt.descripcion || '';
   }
 
-  cancelForm(closeForm = true) {
+  /** ✅ Limpiar formulario */
+  cancelForm(close = true) {
     this.agregando.set(false);
     this.editando.set(null);
     this.eventoTitulo = '';
     this.eventoFecha = '';
     this.eventoDescripcion = '';
+
+    if (close) this.modalEventosOpen.set(false);
   }
 
+  /** ✅ Guardar (Crear o Editar) */
   guardarEvento() {
-    const titulo = this.eventoTitulo?.trim();
-    const fecha = this.eventoFecha; 
-    if (!titulo || !fecha) {
-      console.error('ERROR: Completá al menos Título y Fecha.');
-      return;
-    }
-
-    if (this.editando() !== null) {
-      const id = this.editando() as number;
-      const updated = this.eventos().map(e => {
-        if (e.id === id) {
-          return { ...e, titulo, fecha, descripcion: this.eventoDescripcion };
-        }
-        return e;
-      });
-      this.eventos.set(updated);
-      this.cancelForm();
-      return;
-    }
-
-    const nuevo: CalendarEvent = {
-      id: this.nextId++,
-      titulo,
-      fecha,
+    const data = {
+      titulo: this.eventoTitulo.trim(),
+      fecha_inicio: this.eventoFecha,
       descripcion: this.eventoDescripcion
     };
-    this.eventos.update(prev => [...prev, nuevo]);
-    this.cancelForm();
+
+    if (!data.titulo || !data.fecha_inicio) {
+      alert("Completar título y fecha");
+      return;
+    }
+
+    // ✅ Editar
+    if (this.editando() !== null) {
+      const id = this.editando()!;
+
+      this.eventosService.update(id, data).subscribe({
+        next: (actualizado) => {
+          this.eventos.update(prev =>
+            prev.map(e => e.id === id ? actualizado : e)
+          );
+          this.cancelForm();
+        }
+      });
+
+      return;
+    }
+
+    // ✅ Crear nuevo
+    this.eventosService.create(data).subscribe({
+      next: (nuevo) => {
+        this.eventos.update(prev => [...prev, nuevo]);
+        this.cancelForm();
+      }
+    });
   }
 
+  /** ✅ Borrar */
   eliminarEvento(id: number) {
-    console.warn(`Simulando confirmación: Eliminando evento con ID ${id}`);
-    this.eventos.update(prev => prev.filter(e => e.id !== id));
+    if (!confirm("¿Eliminar este evento?")) return;
+
+    this.eventosService.delete(id).subscribe({
+      next: () =>
+        this.eventos.update(prev => prev.filter(e => e.id !== id))
+    });
+
     if (this.editando() === id) this.cancelForm();
   }
 
+  /** ✅ Ver si un día tiene eventos */
   hasEvents(date: Date): boolean {
-    const dateStr = this.datePipe.transform(date, 'yyyy-MM-dd');
-    return this.eventos().some(e => e.fecha === dateStr);
+    const d = this.datePipe.transform(date, 'yyyy-MM-dd');
+    return this.eventos().some(e => e.fecha_inicio === d);
   }
 
+  /** ✅ Navegación del calendario */
+  navigate(amount: number): void {
+    this.current.update(cur => {
+      const newDate = new Date(cur.getTime());
+      if (this.viewMode() === 'month')
+        newDate.setMonth(newDate.getMonth() + amount);
+      else
+        newDate.setDate(newDate.getDate() + amount * 7);
+      return newDate;
+    });
+  }
+
+  setToday(): void {
+    this.current.set(new Date());
+  }
+
+  setViewMode(mode: ViewMode): void {
+    this.viewMode.set(mode);
+  }
+
+  /** ✅ Logout */
   logout() {
-  const apiUrl = 'http://localhost:8000/api/logout';
-  const token = localStorage.getItem('user_token');
+    const token = localStorage.getItem('user_token');
 
-  this.http.post(apiUrl, {}, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  }).subscribe({
-    next: () => {
-      console.log('Sesión cerrada en el servidor.');
-    },
-    error: (error) => {
-      console.warn('Error al cerrar sesión en Laravel. Limpiando sesión local...', error);
-    },
-    complete: () => {
-      localStorage.removeItem('user_token');
-      localStorage.removeItem('user_details');
-      this.router.navigate(['/login']);
-    }
-  });
- }
-
+    this.http.post(
+      'http://localhost:8000/api/logout',
+      {},
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    .subscribe({
+      complete: () => {
+        localStorage.removeItem('user_token');
+        localStorage.removeItem('user_details');
+        this.router.navigate(['/login']);
+      }
+    });
+  }
 }
