@@ -18,7 +18,6 @@ import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import localeEsAr from '@angular/common/locales/es-AR';
-import { SemanaComponent } from '../semana/semana';
 import { EventosService } from '../services/eventos.service';
 
 registerLocaleData(localeEsAr, 'es-AR');
@@ -45,7 +44,7 @@ interface CalendarEvent {
 @Component({
   selector: 'app-calendario',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule, SemanaComponent],
+  imports: [CommonModule, FormsModule, HttpClientModule],
   providers: [
     DatePipe,
     { provide: LOCALE_ID, useValue: 'es-AR' }
