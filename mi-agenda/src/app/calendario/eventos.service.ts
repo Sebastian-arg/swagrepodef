@@ -1,43 +1,47 @@
-// src/app/services/eventos.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export interface Evento {
-  id: number;
-  titulo: string;
-  fecha_inicio: string;
-  fecha_fin?: string;
-  descripcion?: string;
-  etiqueta?: string;
-}
 
-@Injectable({ providedIn: 'root' })
-export class EventosService {
-  private apiUrl = 'http://localhost:8000/api/eventos';
-  private token = localStorage.getItem('user_token');
+
+@Injectable({
+  providedIn: 'root'
+})
+export class TareasService {
+
+  private apiUrl = 'http://localhost:8000/api/tareas';
 
   constructor(private http: HttpClient) {}
 
+  // ✅ Crear headers con token de localStorage de forma segura
   private getHeaders() {
+    let token = '';
+    if (typeof window !== 'undefined') {
+      token = localStorage.getItem('user_token') || '';
+    }
     return {
-      Authorization: `Bearer ${this.token}`
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json'
     };
   }
 
-  obtenerEventos(): Observable<Evento[]> {
-    return this.http.get<Evento[]>(this.apiUrl, { headers: this.getHeaders() });
+  // ✅ Obtener todas las tareas
+  getTareas(): Observable<any> {
+    return this.http.get(this.apiUrl, { headers: this.getHeaders() });
   }
 
-  crearEvento(evento: Partial<Evento>): Observable<Evento> {
-    return this.http.post<Evento>(this.apiUrl, evento, { headers: this.getHeaders() });
+  // ✅ Crear nueva tarea
+  crearTarea(data: { titulo: string; fecha_limite: string; descripcion?: string }): Observable<any> {
+    return this.http.post(this.apiUrl, data, { headers: this.getHeaders() });
   }
 
-  actualizarEvento(id: number, evento: Partial<Evento>): Observable<Evento> {
-    return this.http.put<Evento>(`${this.apiUrl}/${id}`, evento, { headers: this.getHeaders() });
+  // ✅ Actualizar tarea
+  actualizarTarea(id: number, data: { titulo: string; fecha_limite: string; descripcion?: string }): Observable<any> {
+    return this.http.put(`${this.apiUrl}/${id}`, data, { headers: this.getHeaders() });
   }
 
-  eliminarEvento(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+  // ✅ Eliminar tarea
+  eliminarTarea(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
   }
 }
