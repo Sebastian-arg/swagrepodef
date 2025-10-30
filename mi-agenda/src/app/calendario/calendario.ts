@@ -51,7 +51,7 @@ interface CalendarEvent {
     { provide: LOCALE_ID, useValue: 'es-AR' }
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: '/calendario.html',
+  templateUrl: './calendario.html',
   styleUrls: ['./calendario.css']
 })
 export class CalendarioComponent implements OnInit {
