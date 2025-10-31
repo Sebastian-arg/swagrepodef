@@ -41,6 +41,14 @@ interface CalendarEvent {
   etiqueta?: string;
 }
 
+interface CalendarTarea {
+  id: number;
+  titulo: string;
+  fecha_limite: string;
+  descripcion?: string;
+  etiqueta?: string;
+}
+
 @Component({
   selector: 'app-calendario',
   standalone: true,
@@ -55,17 +63,11 @@ interface CalendarEvent {
 })
 export class CalendarioComponent implements OnInit {
 
-  /* ===============================
-   * 🗓️ ESTADO GENERAL
-   * =============================== */
   viewMode = signal<ViewMode>('month');
   current = signal<Date>(new Date());
 
   readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-  /* ===============================
-   * 📅 EVENTOS
-   * =============================== */
   eventos = signal<CalendarEvent[]>([]);
   modalEventosOpen = signal(false);
   agregandoEvento = signal(false);
@@ -75,10 +77,7 @@ export class CalendarioComponent implements OnInit {
   eventoFecha = '';
   eventoDescripcion = '';
 
-  /* ===============================
-   * ✅ TAREAS
-   * =============================== */
-  tareas = signal<CalendarEvent[]>([]);
+  tareas = signal<CalendarTarea[]>([]); 
   modalTareasOpen = signal(false);
   agregandoTarea = signal(false);
   editandoTarea = signal<number | null>(null);
@@ -87,9 +86,6 @@ export class CalendarioComponent implements OnInit {
   tareaFecha = '';
   tareaDescripcion = '';
 
-  /* ===============================
-   * 📅 CALENDARIO
-   * =============================== */
   monthGrid = computed<CalendarDay[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -121,15 +117,12 @@ export class CalendarioComponent implements OnInit {
     return days;
   });
 
-  /* ===============================
-   * ⚙️ CONSTRUCTOR
-   * =============================== */
   constructor(
     private datePipe: DatePipe,
     private router: Router,
     private http: HttpClient,
     private eventosService: EventosService,
-    private tareasService: TareasService  
+    private tareasService: TareasService 
     
     
   ) {}
@@ -140,10 +133,6 @@ export class CalendarioComponent implements OnInit {
 
   }
 
-  /* ===============================
-   * 🎯 EVENTOS CRUD
-   * =============================== */
-
   cargarEventos() {
     this.eventosService.getAll().subscribe({
       next: (data) => this.eventos.set(data),
@@ -153,7 +142,7 @@ export class CalendarioComponent implements OnInit {
 
   cargarTareas() {
   this.tareasService.getTareas().subscribe({
-    next: (data) => this.tareas.set(data),
+    next: (data) => this.tareas.set(data as CalendarTarea[]), 
     error: (err) => console.error('ERROR cargando tareas:', err)
   });
 }
@@ -207,7 +196,7 @@ export class CalendarioComponent implements OnInit {
     };
 
     if (!data.titulo || !data.fecha_inicio) {
-      alert('Completar título y fecha');
+      console.warn('Completar título y fecha'); 
       return;
     }
 
@@ -233,7 +222,7 @@ export class CalendarioComponent implements OnInit {
   }
 
   eliminarEvento(id: number) {
-    if (!confirm('¿Eliminar este evento?')) return;
+    if (!window.confirm('¿Eliminar este evento?')) return; 
 
     this.eventosService.delete(id).subscribe({
       next: () => this.eventos.update(prev => prev.filter(e => e.id !== id))
@@ -241,10 +230,6 @@ export class CalendarioComponent implements OnInit {
 
     if (this.editandoEvento() === id) this.cancelarFormularioEvento();
   }
-
-  /* ===============================
-   * 📝 TAREAS CRUD (local por ahora)
-   * =============================== */
 
   openTareasModal() {
   this.modalTareasOpen.set(true);
@@ -273,7 +258,7 @@ startEditarTarea(id: number) {
   this.editandoTarea.set(id);
 
   this.tareaTitulo = t.titulo;
-  this.tareaFecha = t.fecha_inicio;
+  this.tareaFecha = t.fecha_limite;
   this.tareaDescripcion = t.descripcion || '';
 }
 
@@ -295,7 +280,7 @@ guardarTarea() {
   };
 
   if (!data.titulo || !data.fecha_limite) {
-    alert('Completar título y fecha');
+    console.warn('Completar título y fecha'); 
     return;
   }
 
@@ -323,7 +308,7 @@ guardarTarea() {
 }
 
 eliminarTarea(id: number) {
-  if (!confirm('¿Eliminar esta tarea?')) return;
+  if (!window.confirm('¿Eliminar esta tarea?')) return; 
 
   this.tareasService.eliminarTarea(id).subscribe({
     next: () => {
@@ -334,20 +319,23 @@ eliminarTarea(id: number) {
   });
 }
 
-  /* ===============================
-   * 📆 UTILIDADES DEL CALENDARIO
-   * =============================== */
-  /** ✅ Ver si un día tiene tareas */
-  hasTareas(date: Date): boolean {
-    const d = this.datePipe.transform(date, 'yyyy-MM-dd');
-    return this.tareas().some(t => t.fecha_inicio === d);
-  }
-  /** ✅ Ver si un día tiene eventos */
-  hasEvents(date: Date): boolean {
-    const d = this.datePipe.transform(date, 'yyyy-MM-dd');
-    return this.eventos().some(e => e.fecha_inicio === d);
-  }
 
+  hasTareas(date: Date): boolean {
+    const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
+
+    return this.tareas().some(t => {
+      const tareaDateKey = this.datePipe.transform(t.fecha_limite, 'yyyy-MM-dd');
+      return tareaDateKey === dayKey;
+    });
+  }
+  hasEvents(date: Date): boolean {
+    const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
+    
+    return this.eventos().some(e => {
+        const eventDateKey = this.datePipe.transform(e.fecha_inicio, 'yyyy-MM-dd');
+        return eventDateKey === dayKey;
+    });
+  }
 
   navigate(amount: number): void {
     this.current.update(cur => {
@@ -368,9 +356,6 @@ eliminarTarea(id: number) {
     this.viewMode.set(mode);
   }
 
-  /* ===============================
-   * 🚪 LOGOUT
-   * =============================== */
   logout() {
     const token = localStorage.getItem('user_token');
 

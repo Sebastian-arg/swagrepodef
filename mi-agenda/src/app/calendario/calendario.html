@@ -66,10 +66,10 @@
 
           @for (day of monthGrid(); track day.date.getTime()) {
           <div class="calendar-day"
-               [class.is-current-month]="day.isCurrentMonth"
-               [class.is-today]="day.isToday"
-               [class.has-events]="hasEvents(day.date)"
-               (click)="openEventosModal()">
+              [class.is-current-month]="day.isCurrentMonth"
+              [class.is-today]="day.isToday"
+              [class.has-events]="hasEvents(day.date)"
+              (click)="openEventosModal()">
 
             <span class="font-semibold text-base">{{ day.date.getDate() }}</span>
 
@@ -224,7 +224,7 @@
               <div class="event-info">
                 <div class="event-title">{{ t.titulo }}</div>
                 <div class="event-date">
-                  {{ t.fecha_inicio | date:'EEEE d MMM y' }}
+                  {{ t.fecha_limite | date:'EEEE d MMM y' }}
                 </div>
                 @if (t.descripcion) {
                   <div class="event-desc">{{ t.descripcion }}</div>
