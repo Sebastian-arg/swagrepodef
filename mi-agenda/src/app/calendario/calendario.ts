@@ -19,6 +19,8 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import localeEsAr from '@angular/common/locales/es-AR';
 import { EventosService } from '../services/eventos.service';
+import { TareasService } from '../services/tareas.service';
+
 
 registerLocaleData(localeEsAr, 'es-AR');
 
@@ -131,11 +133,16 @@ export class CalendarioComponent implements OnInit {
     private datePipe: DatePipe,
     private router: Router,
     private http: HttpClient,
-    private eventosService: EventosService
+    private eventosService: EventosService,
+    private tareasService: TareasService  
+    
+    
   ) {}
 
   ngOnInit(): void {
     this.cargarEventos();
+    this.cargarTareas(); 
+
   }
 
   /* ===============================
@@ -148,6 +155,13 @@ export class CalendarioComponent implements OnInit {
       error: (err) => console.error('ERROR cargando eventos:', err)
     });
   }
+
+  cargarTareas() {
+  this.tareasService.getTareas().subscribe({
+    next: (data) => this.tareas.set(data),
+    error: (err) => console.error('ERROR cargando tareas:', err)
+  });
+}
 
   openEventosModal() {
     this.modalEventosOpen.set(true);
@@ -253,77 +267,92 @@ export class CalendarioComponent implements OnInit {
    * =============================== */
 
   openTareasModal() {
-    this.modalTareasOpen.set(true);
-    this.modalEventosOpen.set(false);
-    this.cancelarFormularioTarea(false);
+  this.modalTareasOpen.set(true);
+  this.modalEventosOpen.set(false);
+  this.cancelarFormularioTarea(false);
+}
+
+closeTareasModal() {
+  this.modalTareasOpen.set(false);
+}
+
+startAgregarTarea() {
+  this.agregandoTarea.set(true);
+  this.editandoTarea.set(null);
+
+  this.tareaTitulo = '';
+  this.tareaFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
+  this.tareaDescripcion = '';
+}
+
+startEditarTarea(id: number) {
+  const t = this.tareas().find(e => e.id === id);
+  if (!t) return;
+
+  this.agregandoTarea.set(false);
+  this.editandoTarea.set(id);
+
+  this.tareaTitulo = t.titulo;
+  this.tareaFecha = t.fecha_inicio;
+  this.tareaDescripcion = t.descripcion || '';
+}
+
+cancelarFormularioTarea(close = true) {
+  this.agregandoTarea.set(false);
+  this.editandoTarea.set(null);
+  this.tareaTitulo = '';
+  this.tareaFecha = '';
+  this.tareaDescripcion = '';
+
+  if (close) this.modalTareasOpen.set(false);
+}
+
+guardarTarea() {
+  const data = {
+    titulo: this.tareaTitulo.trim(),
+    fecha_limite: this.tareaFecha,
+    descripcion: this.tareaDescripcion
+  };
+
+  if (!data.titulo || !data.fecha_limite) {
+    alert('Completar título y fecha');
+    return;
   }
 
-  closeTareasModal() {
-    this.modalTareasOpen.set(false);
+  // ✅ EDITAR
+  if (this.editandoTarea() !== null) {
+    const id = this.editandoTarea()!;
+    this.tareasService.actualizarTarea(id, data).subscribe({
+      next: () => {
+        this.cargarTareas();
+        this.cancelarFormularioTarea();
+      },
+      error: (err) => console.error('Error editando tarea', err)
+    });
+    return;
   }
 
-  startAgregarTarea() {
-    this.agregandoTarea.set(true);
-    this.editandoTarea.set(null);
-
-    this.tareaTitulo = '';
-    this.tareaFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
-    this.tareaDescripcion = '';
-  }
-
-  startEditarTarea(id: number) {
-    const t = this.tareas().find(e => e.id === id);
-    if (!t) return;
-
-    this.agregandoTarea.set(false);
-    this.editandoTarea.set(id);
-
-    this.tareaTitulo = t.titulo;
-    this.tareaFecha = t.fecha_inicio;
-    this.tareaDescripcion = t.descripcion || '';
-  }
-
-  cancelarFormularioTarea(close = true) {
-    this.agregandoTarea.set(false);
-    this.editandoTarea.set(null);
-    this.tareaTitulo = '';
-    this.tareaFecha = '';
-    this.tareaDescripcion = '';
-
-    if (close) this.modalTareasOpen.set(false);
-  }
-
-  guardarTarea() {
-    const data = {
-      titulo: this.tareaTitulo.trim(),
-      fecha_inicio: this.tareaFecha,
-      descripcion: this.tareaDescripcion
-    };
-
-    if (!data.titulo || !data.fecha_inicio) {
-      alert('Completar título y fecha');
-      return;
-    }
-
-    if (this.editandoTarea() !== null) {
-      const id = this.editandoTarea()!;
-      this.tareas.update(prev =>
-        prev.map(t => t.id === id ? { ...t, ...data } : t)
-      );
+  // ✅ CREAR
+  this.tareasService.crearTarea(data).subscribe({
+    next: () => {
+      this.cargarTareas();
       this.cancelarFormularioTarea();
-      return;
-    }
+    },
+    error: (err) => console.error('Error creando tarea', err)
+  });
+}
 
-    const nueva = { id: Date.now(), ...data };
-    this.tareas.update(prev => [...prev, nueva]);
-    this.cancelarFormularioTarea();
-  }
+eliminarTarea(id: number) {
+  if (!confirm('¿Eliminar esta tarea?')) return;
 
-  eliminarTarea(id: number) {
-    if (!confirm('¿Eliminar esta tarea?')) return;
-    this.tareas.update(prev => prev.filter(t => t.id !== id));
-    if (this.editandoTarea() === id) this.cancelarFormularioTarea();
-  }
+  this.tareasService.eliminarTarea(id).subscribe({
+    next: () => {
+      this.cargarTareas();
+      if (this.editandoTarea() === id) this.cancelarFormularioTarea();
+    },
+    error: (err) => console.error('Error eliminando tarea', err)
+  });
+}
 
   /* ===============================
    * 📆 UTILIDADES DEL CALENDARIO
