@@ -23,7 +23,6 @@
     --text-soft: #6B4C6E; /* Texto secundario */
     --text-light: #FFFFFF;
     --today-bg: #FFE3EB; /* Fondo del día de hoy (Rosa claro) */
-    --calendar-hover-bg: #1eff00; /* Hover de celda */
 }
 
 /* ----------------------------------------------------
@@ -54,16 +53,7 @@
      }
     .sidebar { display: none; }
     /* La sidebar derecha se muestra al final en la vista móvil */
-    .right-sidebar { 
-        position: fixed; 
-        bottom: 0; 
-        left: 0; 
-        width: 100%;
-        height: auto;
-        padding: 12px;
-        z-index: 100;
-        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
-    }
+    
 }
 
 
@@ -94,6 +84,7 @@
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
+    
 }
 
 @media (max-width: 1024px) {
@@ -155,7 +146,7 @@
  * ----------------------------------------------------
  */
 .main-content {
-    background: linear-gradient(135deg, var(--background-color-start), var(--background-color-end));
+    background: linear-gradient(135deg, #004aad, #cb6ce6);
     overflow-y: auto;
     padding: 24px;
 }
@@ -190,16 +181,6 @@
 .btn-home:hover { background-color: var(--dark-color); }
 .btn-home i { margin-right: 5px; }
 
-
-/* NO SE USA MAS SE PUEDE BORRAR (lo dejo por las dudas)*/
-/* .profile-img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--accent-color);
-}
-/* NO SE USA MAS SE PUEDE BORRAR (lo dejo por las dudas)*/
 
 .btn-logout {
     background: var(--primary-color); /* Color sólido como en la imagen */
@@ -325,7 +306,7 @@
 }
 
 .calendar-day:hover {
-    background-color: var(--calendar-hover-bg);
+    background: linear-gradient(135deg, #004aad, #cb6ce6);
 }
 
 .calendar-day.is-current-month {
