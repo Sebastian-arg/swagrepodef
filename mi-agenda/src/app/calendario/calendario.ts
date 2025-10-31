@@ -4,13 +4,16 @@ import {
   computed,
   ChangeDetectionStrategy,
   OnInit,
-  LOCALE_ID
+  LOCALE_ID,
+  Inject,
+  PLATFORM_ID
 } from '@angular/core';
 
 import {
   CommonModule,
   DatePipe,
-  registerLocaleData
+  registerLocaleData,
+  isPlatformBrowser
 } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
@@ -20,7 +23,6 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import localeEsAr from '@angular/common/locales/es-AR';
 import { EventosService } from '../services/eventos.service';
 import { TareasService } from '../services/tareas.service';
-
 
 registerLocaleData(localeEsAr, 'es-AR');
 
@@ -60,7 +62,6 @@ export class CalendarioComponent implements OnInit {
    * =============================== */
   viewMode = signal<ViewMode>('month');
   current = signal<Date>(new Date());
-
   readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
   /* ===============================
@@ -77,13 +78,11 @@ export class CalendarioComponent implements OnInit {
   eventoTodoElDia = false;
   eventoHoraInicio = '';
   eventoHoraFin = '';
-  
-
 
   /* ===============================
    * ✅ TAREAS
    * =============================== */
-  tareas = signal<CalendarEvent[]>([]);
+  tareas = signal<any[]>([]);
   modalTareasOpen = signal(false);
   agregandoTarea = signal(false);
   editandoTarea = signal<number | null>(null);
@@ -134,15 +133,16 @@ export class CalendarioComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private eventosService: EventosService,
-    private tareasService: TareasService  
-    
-    
+    private tareasService: TareasService,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
-    this.cargarEventos();
-    this.cargarTareas(); 
-
+    // Evitar llamadas HTTP durante SSR
+    if (isPlatformBrowser(this.platformId)) {
+      this.cargarEventos();
+      this.cargarTareas();
+    }
   }
 
   /* ===============================
@@ -156,13 +156,6 @@ export class CalendarioComponent implements OnInit {
     });
   }
 
-  cargarTareas() {
-  this.tareasService.getTareas().subscribe({
-    next: (data) => this.tareas.set(data),
-    error: (err) => console.error('ERROR cargando tareas:', err)
-  });
-}
-
   openEventosModal() {
     this.modalEventosOpen.set(true);
     this.modalTareasOpen.set(false);
@@ -175,16 +168,14 @@ export class CalendarioComponent implements OnInit {
   }
 
   startAgregarEvento() {
-  this.agregandoEvento.set(true);
-  this.editandoEvento.set(null);
-  this.eventoTitulo = '';
-  this.eventoFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
-  this.eventoDescripcion = '';
-  this.eventoTodoElDia = true;
-  this.eventoHoraInicio = '';
-  this.eventoHoraFin = '';
-    
-
+    this.agregandoEvento.set(true);
+    this.editandoEvento.set(null);
+    this.eventoTitulo = '';
+    this.eventoFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
+    this.eventoDescripcion = '';
+    this.eventoTodoElDia = true;
+    this.eventoHoraInicio = '';
+    this.eventoHoraFin = '';
   }
 
   startEditarEvento(id: number) {
@@ -217,7 +208,7 @@ export class CalendarioComponent implements OnInit {
 
     if (this.eventoTodoElDia) {
       data.fecha_inicio = this.eventoFecha;
-      data.fecha_fin = this.eventoFecha; // mismo día
+      data.fecha_fin = this.eventoFecha;
     } else {
       data.fecha_inicio = `${this.eventoFecha}T${this.eventoHoraInicio}`;
       data.fecha_fin = `${this.eventoFecha}T${this.eventoHoraFin}`;
@@ -232,9 +223,7 @@ export class CalendarioComponent implements OnInit {
       const id = this.editandoEvento()!;
       this.eventosService.update(id, data).subscribe({
         next: (actualizado) => {
-          this.eventos.update(prev =>
-            prev.map(e => e.id === id ? actualizado : e)
-          );
+          this.eventos.update(prev => prev.map(e => e.id === id ? actualizado : e));
           this.cancelarFormularioEvento();
         },
         error: (err) => console.error('Error actualizando evento:', err)
@@ -251,7 +240,6 @@ export class CalendarioComponent implements OnInit {
     });
   }
 
-
   eliminarEvento(id: number) {
     if (!confirm('¿Eliminar este evento?')) return;
 
@@ -263,111 +251,146 @@ export class CalendarioComponent implements OnInit {
   }
 
   /* ===============================
-   * 📝 TAREAS CRUD (local por ahora)
+   * 📝 TAREAS CRUD
    * =============================== */
 
-  openTareasModal() {
-  this.modalTareasOpen.set(true);
-  this.modalEventosOpen.set(false);
-  this.cancelarFormularioTarea(false);
-}
+  // Normaliza fechas desde el backend y garantiza campos para la vista
+  private normalizeTarea(t: any) {
+    const isoParaDia =
+      t.fecha_inicio ??
+      t.fecha_limite ??
+      t.fecha ??
+      t.fecha_creacion ??
+      t.created_at ??
+      '';
 
-closeTareasModal() {
-  this.modalTareasOpen.set(false);
-}
+    const isoCreacion = t.fecha_creacion ?? t.created_at ?? new Date().toISOString();
 
-startAgregarTarea() {
-  this.agregandoTarea.set(true);
-  this.editandoTarea.set(null);
-
-  this.tareaTitulo = '';
-  this.tareaFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
-  this.tareaDescripcion = '';
-}
-
-startEditarTarea(id: number) {
-  const t = this.tareas().find(e => e.id === id);
-  if (!t) return;
-
-  this.agregandoTarea.set(false);
-  this.editandoTarea.set(id);
-
-  this.tareaTitulo = t.titulo;
-  this.tareaFecha = t.fecha_inicio;
-  this.tareaDescripcion = t.descripcion || '';
-}
-
-cancelarFormularioTarea(close = true) {
-  this.agregandoTarea.set(false);
-  this.editandoTarea.set(null);
-  this.tareaTitulo = '';
-  this.tareaFecha = '';
-  this.tareaDescripcion = '';
-
-  if (close) this.modalTareasOpen.set(false);
-}
-
-guardarTarea() {
-  const data = {
-    titulo: this.tareaTitulo.trim(),
-    fecha_limite: this.tareaFecha,
-    descripcion: this.tareaDescripcion
-  };
-
-  if (!data.titulo || !data.fecha_limite) {
-    alert('Completar título y fecha');
-    return;
+    return {
+      ...t,
+      // el calendario usa yyyy-MM-dd para marcar celdas
+      fecha_inicio: isoParaDia ? String(isoParaDia).slice(0, 10) : '',
+      // para mostrar "Creada: ..."
+      fecha_creacion_iso: isoCreacion
+    };
   }
 
-  // ✅ EDITAR
-  if (this.editandoTarea() !== null) {
-    const id = this.editandoTarea()!;
-    this.tareasService.actualizarTarea(id, data).subscribe({
-      next: () => {
-        this.cargarTareas();
+  cargarTareas() {
+    this.tareasService.getTareas().subscribe({
+      next: (data) => {
+        const normalizadas = (data ?? []).map((t: any) => this.normalizeTarea(t));
+        this.tareas.set(normalizadas);
+      },
+      error: (err) => console.error('ERROR cargando tareas:', err)
+    });
+  }
+
+  openTareasModal() {
+    this.modalTareasOpen.set(true);
+    this.modalEventosOpen.set(false);
+    this.cancelarFormularioTarea(false);
+  }
+
+  closeTareasModal() {
+    this.modalTareasOpen.set(false);
+  }
+
+  startAgregarTarea() {
+    this.agregandoTarea.set(true);
+    this.editandoTarea.set(null);
+
+    this.tareaTitulo = '';
+    this.tareaFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
+    this.tareaDescripcion = '';
+  }
+
+  startEditarTarea(id: number) {
+    const t = this.tareas().find(e => e.id === id);
+    if (!t) return;
+
+    this.agregandoTarea.set(false);
+    this.editandoTarea.set(id);
+
+    this.tareaTitulo = t.titulo;
+    this.tareaFecha = t.fecha_inicio;          // ya viene normalizado
+    this.tareaDescripcion = t.descripcion || '';
+  }
+
+  cancelarFormularioTarea(close = true) {
+    this.agregandoTarea.set(false);
+    this.editandoTarea.set(null);
+    this.tareaTitulo = '';
+    this.tareaFecha = '';
+    this.tareaDescripcion = '';
+
+    if (close) this.modalTareasOpen.set(false);
+  }
+
+  guardarTarea() {
+    const ahoraISO = new Date().toISOString();
+
+    const data = {
+      titulo: this.tareaTitulo.trim(),
+      fecha_limite: this.tareaFecha,
+      descripcion: this.tareaDescripcion,
+      // ✅ guardamos cuándo se creó
+      fecha_creacion: ahoraISO
+    };
+
+    if (!data.titulo || !data.fecha_limite) {
+      alert('Completar título y fecha');
+      return;
+    }
+
+    // ✅ EDITAR
+    if (this.editandoTarea() !== null) {
+      const id = this.editandoTarea()!;
+      this.tareasService.actualizarTarea(id, data).subscribe({
+        next: (actualizada) => {
+          const norm = this.normalizeTarea(actualizada ?? { id, ...data });
+          this.tareas.update(prev => prev.map(t => t.id === id ? norm : t));
+          this.cancelarFormularioTarea();
+        },
+        error: (err) => console.error('Error editando tarea', err)
+      });
+      return;
+    }
+
+    // ✅ CREAR (inserta y ves la fecha al instante)
+    this.tareasService.crearTarea(data).subscribe({
+      next: (nueva) => {
+        const norm = this.normalizeTarea(nueva ?? data);
+        this.tareas.update(prev => [...prev, norm]);
         this.cancelarFormularioTarea();
       },
-      error: (err) => console.error('Error editando tarea', err)
+      error: (err) => console.error('Error creando tarea', err)
     });
-    return;
   }
 
-  // ✅ CREAR
-  this.tareasService.crearTarea(data).subscribe({
-    next: () => {
-      this.cargarTareas();
-      this.cancelarFormularioTarea();
-    },
-    error: (err) => console.error('Error creando tarea', err)
-  });
-}
+  eliminarTarea(id: number) {
+    if (!confirm('¿Eliminar esta tarea?')) return;
 
-eliminarTarea(id: number) {
-  if (!confirm('¿Eliminar esta tarea?')) return;
-
-  this.tareasService.eliminarTarea(id).subscribe({
-    next: () => {
-      this.cargarTareas();
-      if (this.editandoTarea() === id) this.cancelarFormularioTarea();
-    },
-    error: (err) => console.error('Error eliminando tarea', err)
-  });
-}
+    this.tareasService.eliminarTarea(id).subscribe({
+      next: () => {
+        this.tareas.update(prev => prev.filter(t => t.id !== id));
+        if (this.editandoTarea() === id) this.cancelarFormularioTarea();
+      },
+      error: (err) => console.error('Error eliminando tarea', err)
+    });
+  }
 
   /* ===============================
    * 📆 UTILIDADES DEL CALENDARIO
    * =============================== */
-  /** ✅ Ver si un día tiene tareas */
   hasTareas(date: Date): boolean {
     const d = this.datePipe.transform(date, 'yyyy-MM-dd');
     return this.tareas().some(t => t.fecha_inicio === d);
   }
-  /** ✅ Ver si un día tiene eventos */
+
   hasEvents(date: Date): boolean {
     const d = this.datePipe.transform(date, 'yyyy-MM-dd');
     return this.eventos().some(e => e.fecha_inicio === d);
   }
-
 
   navigate(amount: number): void {
     this.current.update(cur => {
@@ -389,19 +412,27 @@ eliminarTarea(id: number) {
   }
 
   /* ===============================
-   * 🚪 LOGOUT
+   * 🚪 LOGOUT (seguro para SSR)
    * =============================== */
   logout() {
-    const token = localStorage.getItem('user_token');
+    // Evita ReferenceError cuando se renderiza en servidor
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const token = (typeof localStorage !== 'undefined')
+      ? (localStorage.getItem('user_token') ?? localStorage.getItem('token'))
+      : null;
 
     this.http.post(
       'http://localhost:8000/api/logout',
       {},
-      { headers: { Authorization: `Bearer ${token}` } }
+      token ? { headers: { Authorization: `Bearer ${token}` } } : {}
     ).subscribe({
       complete: () => {
-        localStorage.removeItem('user_token');
-        localStorage.removeItem('user_details');
+        if (typeof localStorage !== 'undefined') {
+          localStorage.removeItem('user_token');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user_details');
+        }
         this.router.navigate(['/login']);
       }
     });
