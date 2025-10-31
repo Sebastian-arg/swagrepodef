@@ -186,6 +186,26 @@
         <label for="eventoFecha">Fecha</label>
         <input type="date" id="eventoFecha" [(ngModel)]="eventoFecha" />
 
+        <!-- 🕘 Toggle de Todo el Día -->
+        <div class="toggle-container">
+          <label class="switch">
+            <input type="checkbox" [(ngModel)]="eventoTodoElDia" />
+            <span class="slider"></span>
+          </label>
+          <span>{{ eventoTodoElDia ? 'Todo el día' : 'Evento con horario' }}</span>
+        </div>
+
+        <!-- Si NO es todo el día, mostrar horarios -->
+        @if (!eventoTodoElDia) {
+          <div class="horarios-container">
+            <label for="horaInicio">Hora de inicio</label>
+            <input type="time" id="horaInicio" [(ngModel)]="eventoHoraInicio" />
+
+            <label for="horaFin">Hora de fin</label>
+            <input type="time" id="horaFin" [(ngModel)]="eventoHoraFin" />
+          </div>
+        }
+
         <label for="eventoDescripcion">Descripción</label>
         <textarea rows="3" id="eventoDescripcion" [(ngModel)]="eventoDescripcion"></textarea>
 
@@ -194,11 +214,12 @@
           <button class="btn-save" (click)="guardarEvento()">Guardar</button>
         </div>
       </div>
-      }
 
-    </div>
-  </div>
-  }
+            }
+
+          </div>
+        </div>
+        }
 
   @if (modalTareasOpen()) {
   <div class="modal-overlay" (click)="closeTareasModal()">

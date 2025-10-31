@@ -72,6 +72,11 @@ export class CalendarioComponent implements OnInit {
   eventoTitulo = '';
   eventoFecha = '';
   eventoDescripcion = '';
+  eventoTodoElDia = false;
+  eventoHoraInicio = '';
+  eventoHoraFin = '';
+  
+
 
   /* ===============================
    * ✅ TAREAS
@@ -156,11 +161,16 @@ export class CalendarioComponent implements OnInit {
   }
 
   startAgregarEvento() {
-    this.agregandoEvento.set(true);
-    this.editandoEvento.set(null);
-    this.eventoTitulo = '';
-    this.eventoFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
-    this.eventoDescripcion = '';
+  this.agregandoEvento.set(true);
+  this.editandoEvento.set(null);
+  this.eventoTitulo = '';
+  this.eventoFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
+  this.eventoDescripcion = '';
+  this.eventoTodoElDia = true;
+  this.eventoHoraInicio = '';
+  this.eventoHoraFin = '';
+    
+
   }
 
   startEditarEvento(id: number) {
@@ -186,11 +196,18 @@ export class CalendarioComponent implements OnInit {
   }
 
   guardarEvento() {
-    const data = {
+    const data: any = {
       titulo: this.eventoTitulo.trim(),
-      fecha_inicio: this.eventoFecha,
-      descripcion: this.eventoDescripcion
+      descripcion: this.eventoDescripcion,
     };
+
+    if (this.eventoTodoElDia) {
+      data.fecha_inicio = this.eventoFecha;
+      data.fecha_fin = this.eventoFecha; // mismo día
+    } else {
+      data.fecha_inicio = `${this.eventoFecha}T${this.eventoHoraInicio}`;
+      data.fecha_fin = `${this.eventoFecha}T${this.eventoHoraFin}`;
+    }
 
     if (!data.titulo || !data.fecha_inicio) {
       alert('Completar título y fecha');
@@ -205,7 +222,8 @@ export class CalendarioComponent implements OnInit {
             prev.map(e => e.id === id ? actualizado : e)
           );
           this.cancelarFormularioEvento();
-        }
+        },
+        error: (err) => console.error('Error actualizando evento:', err)
       });
       return;
     }
@@ -214,9 +232,11 @@ export class CalendarioComponent implements OnInit {
       next: (nuevo) => {
         this.eventos.update(prev => [...prev, nuevo]);
         this.cancelarFormularioEvento();
-      }
+      },
+      error: (err) => console.error('Error guardando evento:', err)
     });
   }
+
 
   eliminarEvento(id: number) {
     if (!confirm('¿Eliminar este evento?')) return;
