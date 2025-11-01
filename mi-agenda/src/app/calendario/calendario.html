@@ -153,9 +153,15 @@
           <div class="event-info">
             <div class="event-title">{{ evt.titulo }}</div>
 
-            <div class="event-date">
-              {{ evt.fecha_inicio | date:'EEEE d MMM y' }}
-            </div>
+          <div class="event-date">
+            {{ evt.fecha_inicio | date:'EEEE d MMM y' }}
+            <span class="event-time">
+              ({{ evt.fecha_inicio | date:'HH:mm' }}
+              -
+              {{ evt.fecha_fin ? (evt.fecha_fin | date:'HH:mm') : 'Sin hora fin' }})
+            </span>
+          </div>
+
 
             @if (evt.descripcion) {
             <div class="event-desc">{{ evt.descripcion }}</div>
@@ -185,10 +191,26 @@
 
         <label for="eventoFecha">Fecha</label>
         <input type="date" id="eventoFecha" [(ngModel)]="eventoFecha" />
+        <div class="form-group">
+          <label>
+            <input type="checkbox" [(ngModel)]="eventoConHora" />
+            Evento con horario específico
+          </label>
+        </div>
+
+        <!-- Campos de hora solo visibles si el toggle está activado -->
+        <div *ngIf="eventoConHora">
+          <label for="horaInicio">Hora de inicio</label>
+          <input type="time" id="horaInicio" [(ngModel)]="eventoHoraInicio" />
+
+          <label for="horaFin">Hora de fin</label>
+          <input type="time" id="horaFin" [(ngModel)]="eventoHoraFin" />
+        </div>
+
 
         <label for="eventoDescripcion">Descripción</label>
         <textarea rows="3" id="eventoDescripcion" [(ngModel)]="eventoDescripcion"></textarea>
-
+      
         <div class="form-actions">
           <button class="btn-cancel" (click)="cancelarFormularioEvento()">Cancelar</button>
           <button class="btn-save" (click)="guardarEvento()">Guardar</button>

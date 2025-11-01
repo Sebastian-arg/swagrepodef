@@ -306,7 +306,7 @@
 }
 
 .calendar-day:hover {
-    background: linear-gradient(135deg, #004aad, #cb6ce6);
+    background: linear-gradient(135deg, #0054ad6a, #e66ce261);
 }
 
 .calendar-day.is-current-month {
@@ -620,4 +620,12 @@ input:checked + .slider {
 
 input:checked + .slider:before {
   transform: translateX(20px);
+}
+
+.form-group input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: #3b82f6; /* azul suave */
+  cursor: pointer;
+  margin-right: 6px;
 }

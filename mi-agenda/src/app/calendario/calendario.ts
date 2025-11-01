@@ -36,10 +36,11 @@ interface CalendarEvent {
   id: number;
   titulo: string;
   fecha_inicio: string;
-  fecha_fin?: string;
+  fecha_fin?: string | null;
   descripcion?: string;
   etiqueta?: string;
 }
+
 
 interface CalendarTarea {
   id: number;
@@ -72,10 +73,15 @@ export class CalendarioComponent implements OnInit {
   modalEventosOpen = signal(false);
   agregandoEvento = signal(false);
   editandoEvento = signal<number | null>(null);
+  eventoConHora = false;
+
 
   eventoTitulo = '';
   eventoFecha = '';
   eventoDescripcion = '';
+  eventoHoraInicio = '';
+  eventoHoraFin = '';
+
 
   tareas = signal<CalendarTarea[]>([]); 
   modalTareasOpen = signal(false);
@@ -164,6 +170,8 @@ export class CalendarioComponent implements OnInit {
     this.eventoTitulo = '';
     this.eventoFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
     this.eventoDescripcion = '';
+    this.eventoHoraInicio = '';
+    this.eventoHoraFin = '';
   }
 
   startEditarEvento(id: number) {
@@ -174,7 +182,9 @@ export class CalendarioComponent implements OnInit {
     this.editandoEvento.set(id);
 
     this.eventoTitulo = evt.titulo;
-    this.eventoFecha = evt.fecha_inicio;
+    this.eventoFecha = evt.fecha_inicio.split('T')[0]; // Por si viene con hora
+    this.eventoHoraInicio = evt.fecha_inicio.split('T')[1]?.slice(0,5) || '';
+    this.eventoHoraFin = evt.fecha_fin ? evt.fecha_fin.split('T')[1]?.slice(0,5) || '' : '';
     this.eventoDescripcion = evt.descripcion || '';
   }
 
@@ -184,14 +194,23 @@ export class CalendarioComponent implements OnInit {
     this.eventoTitulo = '';
     this.eventoFecha = '';
     this.eventoDescripcion = '';
+    this.eventoHoraInicio = '';
+    this.eventoHoraFin = '';
 
     if (close) this.modalEventosOpen.set(false);
   }
 
-  guardarEvento() {
+
+    guardarEvento() {
+    const fechaFinCompleta = this.eventoHoraFin
+    ? `${this.eventoFecha}T${this.eventoHoraFin}:00`
+    : undefined;
+
+
     const data = {
       titulo: this.eventoTitulo.trim(),
-      fecha_inicio: this.eventoFecha,
+      fecha_inicio: fechaFinCompleta,
+      fecha_fin: fechaFinCompleta,
       descripcion: this.eventoDescripcion
     };
 
@@ -220,6 +239,7 @@ export class CalendarioComponent implements OnInit {
       }
     });
   }
+
 
   eliminarEvento(id: number) {
     if (!window.confirm('¿Eliminar este evento?')) return; 
