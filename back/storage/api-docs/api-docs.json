@@ -1,0 +1,808 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Documentación de Agenda",
+        "description": "L5 Swagger",
+        "contact": {
+            "email": "admin@admin.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Iniciar sesión",
+                "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "test@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login correcto",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "abc123"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Credenciales incorrectas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Credenciales incorrectas"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/register": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Registrar un nuevo usuario",
+                "operationId": "8a56853624e025573120a09a4c75d468",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Sebastián"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "example": "sebastian@mail.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registro correcto",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        },
+                                        "token": {
+                                            "type": "string",
+                                            "example": "abc123"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/logout": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Cerrar sesión del usuario",
+                "operationId": "fe8f3429cd6979b3b4517e186505f9f9",
+                "responses": {
+                    "200": {
+                        "description": "Logout correcto",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Sesión cerrada correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/eventos": {
+            "get": {
+                "tags": [
+                    "Eventos"
+                ],
+                "summary": "Listar todos los eventos del usuario autenticado",
+                "operationId": "8df3c75a189cf773a3eb105ea46e145a",
+                "responses": {
+                    "200": {
+                        "description": "Lista de eventos",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Evento"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Eventos"
+                ],
+                "summary": "Crear un nuevo evento",
+                "operationId": "4594ce682158c01a68019d32f26180e1",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "titulo",
+                                    "fecha_inicio"
+                                ],
+                                "properties": {
+                                    "titulo": {
+                                        "type": "string",
+                                        "example": "Cumpleaños"
+                                    },
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Fiesta sorpresa"
+                                    },
+                                    "fecha_inicio": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-30"
+                                    },
+                                    "fecha_fin": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-30"
+                                    },
+                                    "etiqueta": {
+                                        "type": "string",
+                                        "example": "Personal"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Evento creado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Evento"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/eventos/{id}": {
+            "get": {
+                "tags": [
+                    "Eventos"
+                ],
+                "summary": "Ver detalle de un evento",
+                "operationId": "09ec864fa45a38fe55c3078da04e8a13",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del evento",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle del evento",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Evento"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Evento no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Eventos"
+                ],
+                "summary": "Actualizar un evento",
+                "operationId": "032b9536863e8e3b817a73e44d058c1d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del evento a actualizar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "titulo": {
+                                        "type": "string",
+                                        "example": "Cumpleaños actualizado"
+                                    },
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Fiesta sorpresa con amigos"
+                                    },
+                                    "fecha_inicio": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-30"
+                                    },
+                                    "fecha_fin": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-30"
+                                    },
+                                    "etiqueta": {
+                                        "type": "string",
+                                        "example": "Trabajo"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Evento actualizado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Evento"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Evento no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Eventos"
+                ],
+                "summary": "Eliminar un evento",
+                "operationId": "a904dc7b49560c21fe21f57e1df8813a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID del evento a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Evento eliminado correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Evento eliminado correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Evento no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tareas": {
+            "get": {
+                "tags": [
+                    "Tareas"
+                ],
+                "summary": "Listar todas las tareas del usuario autenticado",
+                "operationId": "6733ab2dc67122575c368d93ff4c1308",
+                "parameters": [
+                    {
+                        "name": "estado",
+                        "in": "query",
+                        "description": "Filtrar por estado de la tarea (pendiente/completada)",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "fecha",
+                        "in": "query",
+                        "description": "Filtrar por fecha límite de la tarea",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de tareas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Tarea"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Tareas"
+                ],
+                "summary": "Crear una nueva tarea",
+                "operationId": "cff34cbb3cdf575de33470453733f08c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "titulo"
+                                ],
+                                "properties": {
+                                    "titulo": {
+                                        "type": "string",
+                                        "example": "Comprar pan"
+                                    },
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Ir a la panadería a comprar pan"
+                                    },
+                                    "fecha_limite": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-30"
+                                    },
+                                    "estado": {
+                                        "type": "string",
+                                        "example": "pendiente"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Tarea creada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Tarea"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/api/tareas/{id}": {
+            "get": {
+                "tags": [
+                    "Tareas"
+                ],
+                "summary": "Ver detalle de una tarea",
+                "operationId": "e67767d5fb94e0ee2463e80560e4c7e1",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la tarea",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detalle de la tarea",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Tarea"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tarea no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Tareas"
+                ],
+                "summary": "Actualizar una tarea",
+                "operationId": "883b7dcb1795b74253c21dd6aa80507c",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la tarea a actualizar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "titulo": {
+                                        "type": "string",
+                                        "example": "Comprar pan actualizado"
+                                    },
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Ir a la panadería y comprar pan y leche"
+                                    },
+                                    "fecha_limite": {
+                                        "type": "string",
+                                        "format": "date",
+                                        "example": "2025-11-30"
+                                    },
+                                    "estado": {
+                                        "type": "string",
+                                        "example": "completada"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Tarea actualizada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Tarea"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tarea no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Tareas"
+                ],
+                "summary": "Eliminar una tarea",
+                "operationId": "8c3e8a0e10b85427ca346b93d3bcc223",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID de la tarea a eliminar",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tarea eliminada correctamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Tarea eliminada correctamente"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Tarea no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Evento": {
+                "title": "Evento",
+                "properties": {
+                    "id": {
+                        "description": "* @OA\\Schema(\n*     schema=\"Evento\",\n*     type=\"object\",\n*     title=\"Evento\",\n*     @OA\\Property(property=\"id\", type=\"integer\", example=1),\n*     @OA\\Property(property=\"user_id\", type=\"integer\", example=1),\n*     @OA\\Property(property=\"titulo\", type=\"string\", example=\"Cumpleaños\"),\n*     @OA\\Property(property=\"descripcion\", type=\"string\", example=\"Fiesta sorpresa\"),\n*     @OA\\Property(property=\"fecha_inicio\", type=\"string\", format=\"date\", example=\"2025-11-30\"),\n*     @OA\\Property(property=\"fecha_fin\", type=\"string\", format=\"date\", example=\"2025-11-30\"),\n*     @OA\\Property(property=\"etiqueta\", type=\"string\", example=\"Personal\"),\n*     @OA\\Property(property=\"created_at\", type=\"string\", format=\"date-time\"),\n*     @OA\\Property(property=\"updated_at\", type=\"string\", format=\"date-time\")\n* )",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "titulo": {
+                        "type": "string",
+                        "example": "Cumpleaños"
+                    },
+                    "descripcion": {
+                        "type": "string",
+                        "example": "Fiesta sorpresa"
+                    },
+                    "fecha_inicio": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-11-30"
+                    },
+                    "fecha_fin": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-11-30"
+                    },
+                    "etiqueta": {
+                        "type": "string",
+                        "example": "Personal"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Tarea": {
+                "title": "Tarea",
+                "properties": {
+                    "id": {
+                        "description": "* @OA\\Schema(\n*     schema=\"Tarea\",\n*     type=\"object\",\n*     title=\"Tarea\",\n*     @OA\\Property(property=\"id\", type=\"integer\", example=1),\n*     @OA\\Property(property=\"user_id\", type=\"integer\", example=1),\n*     @OA\\Property(property=\"titulo\", type=\"string\", example=\"Comprar pan\"),\n*     @OA\\Property(property=\"descripcion\", type=\"string\", example=\"Ir a la panadería a comprar pan\"),\n*     @OA\\Property(property=\"fecha_limite\", type=\"string\", format=\"date\", example=\"2025-11-30\"),\n*     @OA\\Property(property=\"estado\", type=\"string\", example=\"pendiente\"),\n*     @OA\\Property(property=\"created_at\", type=\"string\", format=\"date-time\"),\n*     @OA\\Property(property=\"updated_at\", type=\"string\", format=\"date-time\")\n* )",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "user_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "titulo": {
+                        "type": "string",
+                        "example": "Comprar pan"
+                    },
+                    "descripcion": {
+                        "type": "string",
+                        "example": "Ir a la panadería a comprar pan"
+                    },
+                    "fecha_limite": {
+                        "type": "string",
+                        "format": "date",
+                        "example": "2025-11-30"
+                    },
+                    "estado": {
+                        "type": "string",
+                        "example": "pendiente"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autenticación",
+            "description": "Autenticación"
+        },
+        {
+            "name": "Eventos",
+            "description": "Eventos"
+        },
+        {
+            "name": "Tareas",
+            "description": "Tareas"
+        }
+    ]
+}
