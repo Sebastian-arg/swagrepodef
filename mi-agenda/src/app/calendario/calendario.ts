@@ -317,21 +317,22 @@ eliminarTarea(id: number) {
   });
 }
 
-  hasTareas(date: Date): boolean {
+  countTareas(date: Date): number {
     const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
 
-    return this.tareas().some(t => {
+    return this.tareas().filter(t => {
       const tareaDateKey = this.datePipe.transform(t.fecha_limite, 'yyyy-MM-dd');
       return tareaDateKey === dayKey;
-    });
+    }).length;
   }
-  hasEvents(date: Date): boolean {
+
+  countEvents(date: Date): number {
     const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
     
-    return this.eventos().some(e => {
+    return this.eventos().filter(e => {
         const eventDateKey = this.datePipe.transform(e.fecha_inicio, 'yyyy-MM-dd');
         return eventDateKey === dayKey;
-    });
+    }).length;
   }
 
 
