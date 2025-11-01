@@ -21,7 +21,6 @@ import localeEsAr from '@angular/common/locales/es-AR';
 import { EventosService } from '../services/eventos.service';
 import { TareasService } from '../services/tareas.service';
 
-
 registerLocaleData(localeEsAr, 'es-AR');
 
 type ViewMode = 'month' | 'week';
@@ -40,7 +39,6 @@ interface CalendarEvent {
   descripcion?: string;
   etiqueta?: string;
 }
-
 
 interface CalendarTarea {
   id: number;
@@ -64,26 +62,27 @@ interface CalendarTarea {
 })
 export class CalendarioComponent implements OnInit {
 
+  // ====== VARIABLES DE ESTADO GENERAL ======
   viewMode = signal<ViewMode>('month');
   current = signal<Date>(new Date());
-
   readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
+  // ====== EVENTOS ======
   eventos = signal<CalendarEvent[]>([]);
   modalEventosOpen = signal(false);
   agregandoEvento = signal(false);
   editandoEvento = signal<number | null>(null);
-  eventoConHora = false;
 
-
+  // Campos del formulario de eventos
   eventoTitulo = '';
   eventoFecha = '';
   eventoDescripcion = '';
   eventoHoraInicio = '';
   eventoHoraFin = '';
+  eventoTodoElDia = true; // 🔘 Switch para “Todo el día”
 
-
-  tareas = signal<CalendarTarea[]>([]); 
+  // ====== TAREAS ======
+  tareas = signal<CalendarTarea[]>([]);
   modalTareasOpen = signal(false);
   agregandoTarea = signal(false);
   editandoTarea = signal<number | null>(null);
@@ -92,6 +91,7 @@ export class CalendarioComponent implements OnInit {
   tareaFecha = '';
   tareaDescripcion = '';
 
+  // ====== CALENDARIO ======
   monthGrid = computed<CalendarDay[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -128,17 +128,15 @@ export class CalendarioComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private eventosService: EventosService,
-    private tareasService: TareasService 
-    
-    
+    private tareasService: TareasService
   ) {}
 
   ngOnInit(): void {
     this.cargarEventos();
-    this.cargarTareas(); 
-
+    this.cargarTareas();
   }
 
+  // ====== CARGA DE EVENTOS Y TAREAS ======
   cargarEventos() {
     this.eventosService.getAll().subscribe({
       next: (data) => this.eventos.set(data),
@@ -147,12 +145,13 @@ export class CalendarioComponent implements OnInit {
   }
 
   cargarTareas() {
-  this.tareasService.getTareas().subscribe({
-    next: (data) => this.tareas.set(data as CalendarTarea[]), 
-    error: (err) => console.error('ERROR cargando tareas:', err)
-  });
-}
+    this.tareasService.getTareas().subscribe({
+      next: (data) => this.tareas.set(data as CalendarTarea[]),
+      error: (err) => console.error('ERROR cargando tareas:', err)
+    });
+  }
 
+  // ====== EVENTOS ======
   openEventosModal() {
     this.modalEventosOpen.set(true);
     this.modalTareasOpen.set(false);
@@ -172,6 +171,7 @@ export class CalendarioComponent implements OnInit {
     this.eventoDescripcion = '';
     this.eventoHoraInicio = '';
     this.eventoHoraFin = '';
+    this.eventoTodoElDia = true;
   }
 
   startEditarEvento(id: number) {
@@ -182,10 +182,11 @@ export class CalendarioComponent implements OnInit {
     this.editandoEvento.set(id);
 
     this.eventoTitulo = evt.titulo;
-    this.eventoFecha = evt.fecha_inicio.split('T')[0]; // Por si viene con hora
+    this.eventoFecha = evt.fecha_inicio.split('T')[0];
     this.eventoHoraInicio = evt.fecha_inicio.split('T')[1]?.slice(0,5) || '';
     this.eventoHoraFin = evt.fecha_fin ? evt.fecha_fin.split('T')[1]?.slice(0,5) || '' : '';
     this.eventoDescripcion = evt.descripcion || '';
+    this.eventoTodoElDia = !this.eventoHoraInicio; // Si no tiene hora → es “Todo el día”
   }
 
   cancelarFormularioEvento(close = true) {
@@ -196,26 +197,36 @@ export class CalendarioComponent implements OnInit {
     this.eventoDescripcion = '';
     this.eventoHoraInicio = '';
     this.eventoHoraFin = '';
+    this.eventoTodoElDia = true;
 
     if (close) this.modalEventosOpen.set(false);
   }
 
-
-    guardarEvento() {
-    const fechaFinCompleta = this.eventoHoraFin
-    ? `${this.eventoFecha}T${this.eventoHoraFin}:00`
-    : undefined;
-
-
-    const data = {
+  // ✅ Versión corregida de guardarEvento()
+  guardarEvento() {
+    const data: {
+      titulo: string;
+      descripcion: string;
+      fecha_inicio?: string;
+      fecha_fin?: string;
+    } = {
       titulo: this.eventoTitulo.trim(),
-      fecha_inicio: fechaFinCompleta,
-      fecha_fin: fechaFinCompleta,
       descripcion: this.eventoDescripcion
     };
 
+    const fechaInicioCompleta = this.eventoHoraInicio && !this.eventoTodoElDia
+      ? `${this.eventoFecha}T${this.eventoHoraInicio}:00`
+      : `${this.eventoFecha}T00:00:00`;
+
+    const fechaFinCompleta = this.eventoHoraFin && !this.eventoTodoElDia
+      ? `${this.eventoFecha}T${this.eventoHoraFin}:00`
+      : undefined;
+
+    data.fecha_inicio = fechaInicioCompleta;
+    data.fecha_fin = fechaFinCompleta;
+
     if (!data.titulo || !data.fecha_inicio) {
-      console.warn('Completar título y fecha'); 
+      console.warn('Completar título y fecha');
       return;
     }
 
@@ -240,9 +251,8 @@ export class CalendarioComponent implements OnInit {
     });
   }
 
-
   eliminarEvento(id: number) {
-    if (!window.confirm('¿Eliminar este evento?')) return; 
+    if (!window.confirm('¿Eliminar este evento?')) return;
 
     this.eventosService.delete(id).subscribe({
       next: () => this.eventos.update(prev => prev.filter(e => e.id !== id))
@@ -251,110 +261,105 @@ export class CalendarioComponent implements OnInit {
     if (this.editandoEvento() === id) this.cancelarFormularioEvento();
   }
 
+  // ====== TAREAS ======
   openTareasModal() {
-  this.modalTareasOpen.set(true);
-  this.modalEventosOpen.set(false);
-  this.cancelarFormularioTarea(false);
-}
-
-closeTareasModal() {
-  this.modalTareasOpen.set(false);
-}
-
-startAgregarTarea() {
-  this.agregandoTarea.set(true);
-  this.editandoTarea.set(null);
-
-  this.tareaTitulo = '';
-  this.tareaFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
-  this.tareaDescripcion = '';
-}
-
-startEditarTarea(id: number) {
-  const t = this.tareas().find(e => e.id === id);
-  if (!t) return;
-
-  this.agregandoTarea.set(false);
-  this.editandoTarea.set(id);
-
-  this.tareaTitulo = t.titulo;
-  this.tareaFecha = t.fecha_limite;
-  this.tareaDescripcion = t.descripcion || '';
-}
-
-cancelarFormularioTarea(close = true) {
-  this.agregandoTarea.set(false);
-  this.editandoTarea.set(null);
-  this.tareaTitulo = '';
-  this.tareaFecha = '';
-  this.tareaDescripcion = '';
-
-  if (close) this.modalTareasOpen.set(false);
-}
-
-guardarTarea() {
-  const data = {
-    titulo: this.tareaTitulo.trim(),
-    fecha_limite: this.tareaFecha,
-    descripcion: this.tareaDescripcion
-  };
-
-  if (!data.titulo || !data.fecha_limite) {
-    console.warn('Completar título y fecha'); 
-    return;
+    this.modalTareasOpen.set(true);
+    this.modalEventosOpen.set(false);
+    this.cancelarFormularioTarea(false);
   }
 
-  if (this.editandoTarea() !== null) {
-    const id = this.editandoTarea()!;
-    this.tareasService.actualizarTarea(id, data).subscribe({
+  closeTareasModal() {
+    this.modalTareasOpen.set(false);
+  }
+
+  startAgregarTarea() {
+    this.agregandoTarea.set(true);
+    this.editandoTarea.set(null);
+    this.tareaTitulo = '';
+    this.tareaFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
+    this.tareaDescripcion = '';
+  }
+
+  startEditarTarea(id: number) {
+    const t = this.tareas().find(e => e.id === id);
+    if (!t) return;
+
+    this.agregandoTarea.set(false);
+    this.editandoTarea.set(id);
+    this.tareaTitulo = t.titulo;
+    this.tareaFecha = t.fecha_limite;
+    this.tareaDescripcion = t.descripcion || '';
+  }
+
+  cancelarFormularioTarea(close = true) {
+    this.agregandoTarea.set(false);
+    this.editandoTarea.set(null);
+    this.tareaTitulo = '';
+    this.tareaFecha = '';
+    this.tareaDescripcion = '';
+
+    if (close) this.modalTareasOpen.set(false);
+  }
+
+  guardarTarea() {
+    const data = {
+      titulo: this.tareaTitulo.trim(),
+      fecha_limite: this.tareaFecha,
+      descripcion: this.tareaDescripcion
+    };
+
+    if (!data.titulo || !data.fecha_limite) {
+      console.warn('Completar título y fecha');
+      return;
+    }
+
+    if (this.editandoTarea() !== null) {
+      const id = this.editandoTarea()!;
+      this.tareasService.actualizarTarea(id, data).subscribe({
+        next: () => {
+          this.cargarTareas();
+          this.cancelarFormularioTarea();
+        },
+        error: (err) => console.error('Error editando tarea', err)
+      });
+      return;
+    }
+
+    this.tareasService.crearTarea(data).subscribe({
       next: () => {
         this.cargarTareas();
         this.cancelarFormularioTarea();
       },
-      error: (err) => console.error('Error editando tarea', err)
+      error: (err) => console.error('Error creando tarea', err)
     });
-    return;
   }
 
-  this.tareasService.crearTarea(data).subscribe({
-    next: () => {
-      this.cargarTareas();
-      this.cancelarFormularioTarea();
-    },
-    error: (err) => console.error('Error creando tarea', err)
-  });
-}
+  eliminarTarea(id: number) {
+    if (!window.confirm('¿Eliminar esta tarea?')) return;
 
-eliminarTarea(id: number) {
-  if (!window.confirm('¿Eliminar esta tarea?')) return; 
+    this.tareasService.eliminarTarea(id).subscribe({
+      next: () => {
+        this.cargarTareas();
+        if (this.editandoTarea() === id) this.cancelarFormularioTarea();
+      },
+      error: (err) => console.error('Error eliminando tarea', err)
+    });
+  }
 
-  this.tareasService.eliminarTarea(id).subscribe({
-    next: () => {
-      this.cargarTareas();
-      if (this.editandoTarea() === id) this.cancelarFormularioTarea();
-    },
-    error: (err) => console.error('Error eliminando tarea', err)
-  });
-}
-
+  // ====== FUNCIONES DE APOYO ======
   countTareas(date: Date): number {
     const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
-
-    return this.tareas().filter(t => {
-      const tareaDateKey = this.datePipe.transform(t.fecha_limite, 'yyyy-MM-dd');
-      return tareaDateKey === dayKey;
-    }).length;
+    return this.tareas().filter(t =>
+      this.datePipe.transform(t.fecha_limite, 'yyyy-MM-dd') === dayKey
+    ).length;
   }
 
   countEvents(date: Date): number {
     const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
-    
-    return this.eventos().filter(e => {
-        const eventDateKey = this.datePipe.transform(e.fecha_inicio, 'yyyy-MM-dd');
-        return eventDateKey === dayKey;
-    }).length;
+    return this.eventos().filter(e =>
+      this.datePipe.transform(e.fecha_inicio, 'yyyy-MM-dd') === dayKey
+    ).length;
   }
-
 
   navigate(amount: number): void {
     this.current.update(cur => {
@@ -377,7 +382,6 @@ eliminarTarea(id: number) {
 
   logout() {
     const token = localStorage.getItem('user_token');
-
     this.http.post(
       'http://localhost:8000/api/logout',
       {},
