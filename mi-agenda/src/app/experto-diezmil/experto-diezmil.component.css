@@ -1,48 +1,57 @@
+/* Contenedor principal de la tarjeta */
 .experto-container {
+  background: rgba(255, 255, 255, 0.9); /* Fondo similar a otras tarjetas */
+  padding: 25px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   text-align: center;
-  padding: 20px;
-  border-radius: 8px;
-  margin-top: 20px;
-  background-color: #2e2e2e; /* Un fondo oscuro que combine */
+  max-width: 450px;
+  width: 90%;
+  margin-top: 30px; /* Aumentamos el margen superior para separarlo */
 }
 
-.titulo {
-  font-size: 1.2em;
-  font-weight: bold;
-  color: #a8a8a8; /* Un gris claro para el título */
+/* Título de la tarjeta */
+.experto-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+/* Subtítulo o texto descriptivo */
+.experto-subtitle {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+/* Contenedor de la barra de progreso */
+.progress-bar-container {
+  background-color: #e9ecef; /* Color de fondo de la barra */
+  border-radius: 50px;
+  padding: 4px;
   margin-bottom: 10px;
 }
 
-.descripcion {
-  font-size: 0.9em;
-  color: #b8b8b8; /* Un gris un poco más claro para la descripción */
-  line-height: 1.5;
-  max-width: 400px; /* Evita que el texto se estire demasiado */
-  margin: 0 auto 15px; /* Centra el párrafo */
-}
-
-.contador-container {
-  font-size: 1.8em;
-  font-weight: bold;
-  color: #ffffff;
-  margin-bottom: 15px;
-}
-
-.horas-acumuladas {
-  color: #4caf50; /* El color verde del progreso */
-}
-
-.progress-bar-background {
-  width: 100%;
+/* Barra de progreso actual */
+.progress-bar {
+  background-color: #28a745; /* Color verde para el progreso */
   height: 20px;
-  background-color: #555555; /* Fondo de la barra de progreso */
-  border-radius: 10px;
-  overflow: hidden; /* Asegura que la barra de progreso no se salga */
+  border-radius: 50px;
+  transition: width 0.4s ease-in-out; /* Animación suave al cambiar */
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
 }
 
-.progress-bar-foreground {
-  height: 100%;
-  background-color: #4caf50; /* Color verde para el progreso */
-  border-radius: 10px;
-  transition: width 0.5s ease-in-out; /* Transición suave */
+/* Información sobre las horas acumuladas */
+.horas-info {
+  font-size: 0.9rem;
+  color: #555;
 }
