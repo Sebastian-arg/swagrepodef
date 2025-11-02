@@ -450,7 +450,9 @@
   border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
+  margin-left: 10px;
 }
+
 .muted { color: var(--text-soft); font-size: 0.9rem; }
 
 /* Lista de eventos */

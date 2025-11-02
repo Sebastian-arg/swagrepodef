@@ -21,6 +21,7 @@ import localeEsAr from '@angular/common/locales/es-AR';
 import { EventosService } from '../services/eventos.service';
 import { TareasService } from '../services/tareas.service';
 
+
 registerLocaleData(localeEsAr, 'es-AR');
 
 type ViewMode = 'month' | 'week';
@@ -34,16 +35,17 @@ interface CalendarDay {
 interface CalendarEvent {
   id: number;
   titulo: string;
-  fecha_inicio: string;
-  fecha_fin?: string | null;
+  fecha_inicio: string; // Eventos usan fecha_inicio
+  fecha_fin?: string;
   descripcion?: string;
   etiqueta?: string;
 }
 
+// ⚠️ Definir una interfaz para tareas que refleje la propiedad fecha_limite
 interface CalendarTarea {
   id: number;
   titulo: string;
-  fecha_limite: string;
+  fecha_limite: string; // Tareas usan fecha_limite
   descripcion?: string;
   etiqueta?: string;
 }
@@ -62,27 +64,35 @@ interface CalendarTarea {
 })
 export class CalendarioComponent implements OnInit {
 
-  // ====== VARIABLES DE ESTADO GENERAL ======
+  /* ===============================
+  * 🗓️ ESTADO GENERAL
+  * =============================== */
   viewMode = signal<ViewMode>('month');
   current = signal<Date>(new Date());
+  
+  // 🆕 Estado para el modal de selección y la fecha seleccionada
+  modalSeleccionOpen = signal(false);
+  selectedDate = signal<Date | null>(null);
+
   readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
 
-  // ====== EVENTOS ======
+  /* ===============================
+  * 📅 EVENTOS
+  * =============================== */
   eventos = signal<CalendarEvent[]>([]);
   modalEventosOpen = signal(false);
   agregandoEvento = signal(false);
   editandoEvento = signal<number | null>(null);
 
-  // Campos del formulario de eventos
   eventoTitulo = '';
   eventoFecha = '';
   eventoDescripcion = '';
-  eventoHoraInicio = '';
-  eventoHoraFin = '';
-  eventoTodoElDia = true; // 🔘 Switch para “Todo el día”
 
-  // ====== TAREAS ======
-  tareas = signal<CalendarTarea[]>([]);
+  /* ===============================
+  * ✅ TAREAS
+  * =============================== */
+  // ⚠️ Actualizar el tipo de señal a CalendarTarea[]
+  tareas = signal<CalendarTarea[]>([]); 
   modalTareasOpen = signal(false);
   agregandoTarea = signal(false);
   editandoTarea = signal<number | null>(null);
@@ -91,7 +101,9 @@ export class CalendarioComponent implements OnInit {
   tareaFecha = '';
   tareaDescripcion = '';
 
-  // ====== CALENDARIO ======
+  /* ===============================
+  * 📅 CALENDARIO
+  * =============================== */
   monthGrid = computed<CalendarDay[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -123,20 +135,29 @@ export class CalendarioComponent implements OnInit {
     return days;
   });
 
+  /* ===============================
+  * ⚙️ CONSTRUCTOR
+  * =============================== */
   constructor(
     private datePipe: DatePipe,
     private router: Router,
     private http: HttpClient,
     private eventosService: EventosService,
-    private tareasService: TareasService
+    private tareasService: TareasService 
+    
+    
   ) {}
 
   ngOnInit(): void {
     this.cargarEventos();
-    this.cargarTareas();
+    this.cargarTareas(); 
+
   }
 
-  // ====== CARGA DE EVENTOS Y TAREAS ======
+  /* ===============================
+  * 🎯 EVENTOS CRUD
+  * =============================== */
+
   cargarEventos() {
     this.eventosService.getAll().subscribe({
       next: (data) => this.eventos.set(data),
@@ -145,17 +166,20 @@ export class CalendarioComponent implements OnInit {
   }
 
   cargarTareas() {
-    this.tareasService.getTareas().subscribe({
-      next: (data) => this.tareas.set(data as CalendarTarea[]),
-      error: (err) => console.error('ERROR cargando tareas:', err)
-    });
-  }
+  this.tareasService.getTareas().subscribe({
+    // ⚠️ Asegúrate de que tu servicio retorna CalendarTarea[] si tienes un campo fecha_limite
+    next: (data) => this.tareas.set(data as CalendarTarea[]), 
+    error: (err) => console.error('ERROR cargando tareas:', err)
+  });
+}
 
-  // ====== EVENTOS ======
-  openEventosModal() {
+  // 🔄 Renombrada: Se usa en el menú lateral. Abre el modal de la LISTA de eventos.
+  openEventosModalList() {
     this.modalEventosOpen.set(true);
     this.modalTareasOpen.set(false);
-    this.cancelarFormularioEvento(false);
+    this.modalSeleccionOpen.set(false);
+    this.cancelarFormularioEvento(false); // Asegura que el formulario de agregar esté oculto
+    this.selectedDate.set(null);
   }
 
   closeEventosModal() {
@@ -163,15 +187,17 @@ export class CalendarioComponent implements OnInit {
     this.cancelarFormularioEvento(false);
   }
 
-  startAgregarEvento() {
+  // 🔄 Modificada: Permite pasar una fecha para precargar o usa la actual por defecto
+  startAgregarEvento(dateToPreload?: Date | null) {
     this.agregandoEvento.set(true);
     this.editandoEvento.set(null);
     this.eventoTitulo = '';
-    this.eventoFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
+    
+    // Usar la fecha pasada o la fecha actual
+    const date = dateToPreload || new Date();
+    this.eventoFecha = this.datePipe.transform(date, 'yyyy-MM-dd') || '';
+    
     this.eventoDescripcion = '';
-    this.eventoHoraInicio = '';
-    this.eventoHoraFin = '';
-    this.eventoTodoElDia = true;
   }
 
   startEditarEvento(id: number) {
@@ -182,11 +208,8 @@ export class CalendarioComponent implements OnInit {
     this.editandoEvento.set(id);
 
     this.eventoTitulo = evt.titulo;
-    this.eventoFecha = evt.fecha_inicio.split('T')[0];
-    this.eventoHoraInicio = evt.fecha_inicio.split('T')[1]?.slice(0,5) || '';
-    this.eventoHoraFin = evt.fecha_fin ? evt.fecha_fin.split('T')[1]?.slice(0,5) || '' : '';
+    this.eventoFecha = evt.fecha_inicio;
     this.eventoDescripcion = evt.descripcion || '';
-    this.eventoTodoElDia = !this.eventoHoraInicio; // Si no tiene hora → es “Todo el día”
   }
 
   cancelarFormularioEvento(close = true) {
@@ -195,38 +218,21 @@ export class CalendarioComponent implements OnInit {
     this.eventoTitulo = '';
     this.eventoFecha = '';
     this.eventoDescripcion = '';
-    this.eventoHoraInicio = '';
-    this.eventoHoraFin = '';
-    this.eventoTodoElDia = true;
 
     if (close) this.modalEventosOpen.set(false);
   }
 
-  // ✅ Versión corregida de guardarEvento()
   guardarEvento() {
-    const data: {
-      titulo: string;
-      descripcion: string;
-      fecha_inicio?: string;
-      fecha_fin?: string;
-    } = {
+    const data = {
       titulo: this.eventoTitulo.trim(),
+      fecha_inicio: this.eventoFecha,
       descripcion: this.eventoDescripcion
     };
 
-    const fechaInicioCompleta = this.eventoHoraInicio && !this.eventoTodoElDia
-      ? `${this.eventoFecha}T${this.eventoHoraInicio}:00`
-      : `${this.eventoFecha}T00:00:00`;
-
-    const fechaFinCompleta = this.eventoHoraFin && !this.eventoTodoElDia
-      ? `${this.eventoFecha}T${this.eventoHoraFin}:00`
-      : undefined;
-
-    data.fecha_inicio = fechaInicioCompleta;
-    data.fecha_fin = fechaFinCompleta;
-
     if (!data.titulo || !data.fecha_inicio) {
-      console.warn('Completar título y fecha');
+      // ⚠️ Reemplazar alert() por un mensaje o modal personalizado
+      // Usaremos console.warn aquí. En un proyecto real se usaría un modal.
+      console.warn('Completar título y fecha'); 
       return;
     }
 
@@ -252,7 +258,8 @@ export class CalendarioComponent implements OnInit {
   }
 
   eliminarEvento(id: number) {
-    if (!window.confirm('¿Eliminar este evento?')) return;
+    // ⚠️ Reemplazar confirm() por un mensaje o modal personalizado
+    if (!window.confirm('¿Eliminar este evento?')) return; 
 
     this.eventosService.delete(id).subscribe({
       next: () => this.eventos.update(prev => prev.filter(e => e.id !== id))
@@ -261,22 +268,34 @@ export class CalendarioComponent implements OnInit {
     if (this.editandoEvento() === id) this.cancelarFormularioEvento();
   }
 
-  // ====== TAREAS ======
-  openTareasModal() {
+  /* ===============================
+  * 📝 TAREAS CRUD
+  * =============================== */
+
+  // 🔄 Renombrada: Se usa en el menú lateral. Abre el modal de la LISTA de tareas.
+  openTareasModalList() {
     this.modalTareasOpen.set(true);
     this.modalEventosOpen.set(false);
-    this.cancelarFormularioTarea(false);
+    this.modalSeleccionOpen.set(false);
+    this.cancelarFormularioTarea(false); // Asegura que el formulario de agregar esté oculto
+    this.selectedDate.set(null);
   }
 
   closeTareasModal() {
     this.modalTareasOpen.set(false);
   }
 
-  startAgregarTarea() {
+  // 🔄 Modificada: Permite pasar una fecha para precargar o usa la actual por defecto
+  startAgregarTarea(dateToPreload?: Date | null) {
     this.agregandoTarea.set(true);
     this.editandoTarea.set(null);
+
     this.tareaTitulo = '';
-    this.tareaFecha = this.datePipe.transform(new Date(), 'yyyy-MM-dd') || '';
+    
+    // Usar la fecha pasada o la fecha actual
+    const date = dateToPreload || new Date();
+    this.tareaFecha = this.datePipe.transform(date, 'yyyy-MM-dd') || '';
+    
     this.tareaDescripcion = '';
   }
 
@@ -286,8 +305,9 @@ export class CalendarioComponent implements OnInit {
 
     this.agregandoTarea.set(false);
     this.editandoTarea.set(id);
+
     this.tareaTitulo = t.titulo;
-    this.tareaFecha = t.fecha_limite;
+    this.tareaFecha = t.fecha_limite; 
     this.tareaDescripcion = t.descripcion || '';
   }
 
@@ -309,10 +329,12 @@ export class CalendarioComponent implements OnInit {
     };
 
     if (!data.titulo || !data.fecha_limite) {
-      console.warn('Completar título y fecha');
+      // ⚠️ Reemplazar alert() por un mensaje o modal personalizado
+      console.warn('Completar título y fecha'); 
       return;
     }
 
+    // ✅ EDITAR
     if (this.editandoTarea() !== null) {
       const id = this.editandoTarea()!;
       this.tareasService.actualizarTarea(id, data).subscribe({
@@ -325,6 +347,7 @@ export class CalendarioComponent implements OnInit {
       return;
     }
 
+    // ✅ CREAR
     this.tareasService.crearTarea(data).subscribe({
       next: () => {
         this.cargarTareas();
@@ -335,7 +358,8 @@ export class CalendarioComponent implements OnInit {
   }
 
   eliminarTarea(id: number) {
-    if (!window.confirm('¿Eliminar esta tarea?')) return;
+    // ⚠️ Reemplazar confirm() por un mensaje o modal personalizado
+    if (!window.confirm('¿Eliminar esta tarea?')) return; 
 
     this.tareasService.eliminarTarea(id).subscribe({
       next: () => {
@@ -346,20 +370,98 @@ export class CalendarioComponent implements OnInit {
     });
   }
 
-  // ====== FUNCIONES DE APOYO ======
-  countTareas(date: Date): number {
-    const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
-    return this.tareas().filter(t =>
-      this.datePipe.transform(t.fecha_limite, 'yyyy-MM-dd') === dayKey
-    ).length;
+  /* ===============================
+  * 🆕 NUEVA LÓGICA DE MODAL DE SELECCIÓN
+  * =============================== */
+
+  /**
+   * Abre el modal de selección y guarda la fecha del día clickeado.
+   * Usado en el calendario al hacer click en un día.
+   */
+  openSelectionModal(date: Date) {
+    this.selectedDate.set(date);
+    this.modalSeleccionOpen.set(true);
+    // Aseguramos que los otros modales estén cerrados
+    this.modalEventosOpen.set(false);
+    this.modalTareasOpen.set(false);
   }
 
+  closeSelectionModal() {
+    this.modalSeleccionOpen.set(false);
+    this.selectedDate.set(null);
+  }
+  
+  /**
+   * Navega para agregar un nuevo evento, precargando la fecha seleccionada.
+   * Usado desde el modal de selección.
+   */
+  addNewEvent() {
+    const dateToUse = this.selectedDate();
+    
+    // 1. Cerrar el modal de selección
+    this.modalSeleccionOpen.set(false); 
+    
+    // 2. Abrir el modal de Eventos
+    this.modalEventosOpen.set(true);
+    this.modalTareasOpen.set(false); 
+
+    // 3. Iniciar el formulario de agregar con la fecha precargada
+    if (dateToUse) {
+        this.startAgregarEvento(dateToUse);
+    } else {
+        this.startAgregarEvento(); 
+    }
+    this.selectedDate.set(null); // Limpiar estado después de usar
+  }
+
+  /**
+   * Navega para agregar una nueva tarea, precargando la fecha seleccionada.
+   * Usado desde el modal de selección.
+   */
+  addNewTask() {
+    const dateToUse = this.selectedDate();
+    
+    // 1. Cerrar el modal de selección
+    this.modalSeleccionOpen.set(false); 
+
+    // 2. Abrir el modal de Tareas
+    this.modalTareasOpen.set(true);
+    this.modalEventosOpen.set(false); 
+
+    // 3. Iniciar el formulario de agregar con la fecha precargada
+    if (dateToUse) {
+        this.startAgregarTarea(dateToUse);
+    } else {
+        this.startAgregarTarea(); 
+    }
+    this.selectedDate.set(null); // Limpiar estado después de usar
+  }
+
+
+  /* ===============================
+  * 📆 UTILIDADES DEL CALENDARIO
+  * =============================== */
+  
+  /** 🆕 Cuenta el número de tareas para un día. */
+  countTareas(date: Date): number {
+    const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
+
+    return this.tareas().filter(t => {
+      const tareaDateKey = this.datePipe.transform(t.fecha_limite, 'yyyy-MM-dd');
+      return tareaDateKey === dayKey;
+    }).length;
+  }
+
+  /** 🆕 Cuenta el número de eventos para un día. */
   countEvents(date: Date): number {
     const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
-    return this.eventos().filter(e =>
-      this.datePipe.transform(e.fecha_inicio, 'yyyy-MM-dd') === dayKey
-    ).length;
+    
+    return this.eventos().filter(e => {
+        const eventDateKey = this.datePipe.transform(e.fecha_inicio, 'yyyy-MM-dd');
+        return eventDateKey === dayKey;
+    }).length;
   }
+  
 
   navigate(amount: number): void {
     this.current.update(cur => {
@@ -380,8 +482,12 @@ export class CalendarioComponent implements OnInit {
     this.viewMode.set(mode);
   }
 
+  /* ===============================
+  * 🚪 LOGOUT
+  * =============================== */
   logout() {
     const token = localStorage.getItem('user_token');
+
     this.http.post(
       'http://localhost:8000/api/logout',
       {},
