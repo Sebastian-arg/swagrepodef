@@ -44,7 +44,11 @@ export class PomodoroComponent implements OnDestroy {
   private readonly motivationalPhrases: string[] = [
     'Tu yo del futuro te agradece',
     'Un poco todos los días > mucho alguna vez',
-    'El éxito es la suma de pequeños esfuerzos'
+    'El éxito es la suma de pequeños esfuerzos',
+    'La disciplina es el puente entre metas y logros.',
+    'No cuentes los días, haz que los días cuenten.',
+    'El futuro pertenece a quienes creen en la belleza de sus sueños.',
+    'La mejor forma de predecir el futuro es crearlo.'
   ];
 
   // ====================================
