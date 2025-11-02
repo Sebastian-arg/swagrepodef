@@ -16,6 +16,11 @@
     <i class="fa-regular fa-circle-check"></i>
     <span>Tareas</span>
   </button>
+
+  <button class="menu-item" routerLink="/pomodoro">
+    <i class="fa-solid fa-stopwatch"></i>
+    <span>Pomodoro</span>
+  </button>
 </nav>
 
 <div class="sidebar-footer">
@@ -29,7 +34,7 @@
 </div>
 
 <main class="main-content">
-<div class="calendar-view">
+<div class="calendar-view" *ngIf="router.url !== '/pomodoro'">
 <div class="calendar-controls">
 <div class="nav-buttons">
 <button class="control-btn" (click)="navigate(-1)" aria-label="Anterior">&leftarrow;</button>
@@ -95,6 +100,7 @@
   </div>
 </div>
 
+<router-outlet></router-outlet>
 
 </main>
 
@@ -109,7 +115,7 @@
 <div class="modal selection-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
 <div class="modal-header">
 <h2>
-Añadir a {{ selectedDate() | date:'EEEE, d MMMM' | titlecase }}
+  Añadir a {{ selectedDate() | date:'EEEE, d MMMM' | titlecase }}
 </h2>
 <button class="btn-close" (click)="closeSelectionModal()" aria-label="Cerrar modal">✕</button>
 </div>

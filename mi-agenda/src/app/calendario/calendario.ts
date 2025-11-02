@@ -14,7 +14,7 @@ import {
 } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
 import localeEsAr from '@angular/common/locales/es-AR';
@@ -53,7 +53,7 @@ interface CalendarTarea {
 @Component({
   selector: 'app-calendario',
   standalone: true,
-  imports: [CommonModule, FormsModule, HttpClientModule],
+  imports: [CommonModule, FormsModule, HttpClientModule, RouterOutlet],
   providers: [
     DatePipe,
     { provide: LOCALE_ID, useValue: 'es-AR' }
@@ -140,7 +140,7 @@ export class CalendarioComponent implements OnInit {
   * =============================== */
   constructor(
     private datePipe: DatePipe,
-    private router: Router,
+    public router: Router,
     private http: HttpClient,
     private eventosService: EventosService,
     private tareasService: TareasService 

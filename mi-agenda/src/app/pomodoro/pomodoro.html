@@ -1,0 +1,15 @@
+<div class="pomodoro-container">
+  <div class="timer-container">
+    <p class="motivational-phrase">{{ motivationalPhrase }}</p>
+    <h1 class="timer">{{ formatTime(timer) }}</h1>
+    <div class="controls">
+      <button (click)="startTimer()" [disabled]="isTimerRunning">Iniciar</button>
+      <button (click)="pauseTimer()" [disabled]="!isTimerRunning">Pausar</button>
+      <button (click)="resetTimer()">Reiniciar</button>
+    </div>
+  </div>
+  <div class="expert-section">
+    <h1>10,000 horas para convertirte en un experto</h1>
+    <p>La práctica constante es el camino hacia la maestría. ¡Cada pomodoro te acerca más a tu meta!</p>
+  </div>
+</div>
