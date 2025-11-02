@@ -70,30 +70,39 @@
 }
 
 .logo-container {
-  display: flex;
-  flex-direction: column; /* 👈 los elementos van uno debajo del otro */
-  align-items: center;    /* centrados horizontalmente */
-  text-align: center;     /* centra el texto */
-  margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column; /* Alinea ícono y texto verticalmente */
+    margin-bottom: 2.5rem; /* Aumenta el espacio inferior */
+    text-decoration: none; /* Quita el subrayado del enlace */
+    transition: transform 0.3s ease;
+}
+
+.logo-container:hover {
+    transform: scale(1.05); /* Agranda ligeramente el logo al pasar el ratón */
+}
+
+.logo-icon {
+    font-size: 2.8rem; /* Icono más grande y llamativo */
+    color: var(--primary-color);
+    margin-bottom: 0.8rem; /* Espacio entre el icono y el texto */
+    transition: color 0.3s ease;
+}
+
+.logo-container:hover .logo-icon {
+    color: var(--accent-color); /* El icono cambia a un color de acento en hover */
 }
 
 .logo {
-  margin: 0;
-  color: #6a1b9a; /* ejemplo de color morado */
-  font-weight: 700;
-}
-
-.logo-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.subtitle {
-  color: #a173c8;
-  font-weight: 500;
-  margin-top: 4px;
-  opacity: 0.8;
+    margin: 0;
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    font-size: 1.6rem; /* Tamaño de fuente ligeramente más grande */
+    font-weight: 700;
+    background: linear-gradient(45deg, #6a1b9a, #aa4b6b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 
