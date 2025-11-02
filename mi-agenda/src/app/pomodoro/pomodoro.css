@@ -89,10 +89,21 @@
 /* --- Frase motivacional --- */
 .motivational-phrase {
   font-size: 1.1rem;
-  color: #4b5563;
+  color: var(--text-soft, #6B4C6E); /* Usando tu paleta de colores */
+  font-style: italic;
   min-height: 2rem; /* Espacio reservado para evitar saltos */
   margin-bottom: 0.5rem;
+  /* Transición para la aparición y desaparición */
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+  opacity: 0;
+  transform: translateY(10px); /* Comienza ligeramente desplazada hacia abajo */
 }
+
+.motivational-phrase.visible {
+  opacity: 1;
+  transform: translateY(0); /* Vuelve a su posición original */
+}
+
 
 /* --- Contador de Pomodoros --- */
 .pomodoro-counter {

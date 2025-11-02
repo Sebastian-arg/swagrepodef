@@ -35,8 +35,10 @@
     </button>
 
     <!-- Frase motivacional (solo visible durante el Pomodoro) -->
-    <p class="motivational-phrase">
-      {{ mode() === 'pomodoro' && isTimerRunning() ? motivationalPhrase() : '' }}
+    <p 
+      class="motivational-phrase"
+      [class.visible]="mode() === 'pomodoro' && isTimerRunning()">
+      {{ motivationalPhrase() }}
     </p>
     
     <!-- Contador de pomodoros completados -->
