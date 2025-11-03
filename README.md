@@ -32,7 +32,7 @@ Este documento contiene las instrucciones necesarias para configurar y ejecutar 
 
 ## Sección 2: Backend (Laravel)
 
-**Propósito:** Esta sección configura y ejecuta el entorno de servidor de la aplicación, incluyendo las variables de entorno, conexión a base de datos y claves de aplicación.
+**Propósito:** Esta sección configura y ejecuta el entorno de servidor de la aplicación, incluyendo las variables de entorno, conexión a base de datos, claves de aplicación y documentación con Swagger.
 
 ### Pasos para la instalación y configuración
 
@@ -56,21 +56,6 @@ Este documento contiene las instrucciones necesarias para configurar y ejecutar 
       APP_DEBUG=true
       APP_URL=http://localhost
 
-      APP_LOCALE=en
-      APP_FALLBACK_LOCALE=en
-      APP_FAKER_LOCALE=en_US
-
-      APP_MAINTENANCE_DRIVER=file
-      APP_MAINTENANCE_STORE=database
-
-      PHP_CLI_SERVER_WORKERS=4
-      BCRYPT_ROUNDS=12
-
-      LOG_CHANNEL=stack
-      LOG_STACK=single
-      LOG_DEPRECATIONS_CHANNEL=null
-      LOG_LEVEL=debug
-
       DB_CONNECTION=mysql
       DB_HOST=127.0.0.1
       DB_PORT=3306
@@ -78,26 +63,162 @@ Este documento contiene las instrucciones necesarias para configurar y ejecutar 
       DB_USERNAME=root
       DB_PASSWORD=
 
-      SESSION_DRIVER=database
-      SESSION_LIFETIME=120
-      SESSION_ENCRYPT=false
-      SESSION_PATH=/
-      SESSION_DOMAIN=null
+      VITE_APP_NAME="${APP_NAME}"
+      ```
 
-      BROADCAST_CONNECTION=log
-      FILESYSTEM_DISK=local
-      QUEUE_CONNECTION=database
+3.  **Generar la clave de aplicación:**
+    * Ejecutar el siguiente comando:
+      ```
+      php artisan key:generate
+      ```
 
-      CACHE_STORE=database
-      # CACHE_PREFIX=
+4.  **Iniciar el servidor local de Laravel:**
+    * Finalmente, ejecutar:
+      ```
+      php artisan serve
+      ```
 
-      MEMCACHED_HOST=127.0.0.1
+---
 
-      REDIS_CLIENT=phpredis
-      REDIS_HOST=127.0.0.1
-      REDIS_PASSWORD=null
-      REDIS_PORT=6379
+## Sección 3: Configuración de Swagger con Autenticación JWT
 
-      M
+**Propósito:** Agregar documentación interactiva para la API usando Swagger, con soporte para autenticación mediante tokens JWT.
 
+### Pasos para instalar y configurar Swagger
 
+1. **Instalar el paquete L5-Swagger**
+   ```
+   composer require "darkaonline/l5-swagger"
+   ```
+
+2. **Publicar la configuración del proveedor de servicios**
+   ```
+   php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"
+   ```
+
+   Esto genera el archivo `config/l5-swagger.php` y define la ruta:
+   ```
+   http://tu-dominio/api/documentation
+   ```
+
+3. **Agregar la configuración principal en el controlador principal de la API**
+
+   Pegar lo siguiente al inicio del controlador (por ejemplo, `Controller.php`):
+   ```php
+   /**
+    * @OA\Info(
+    *     version="1.0.0",
+    *     title="API en Laravel",
+    *     description="Documentación de la API con Swagger en Laravel"
+    * )
+    *
+    * @OA\Server(
+    *     url="http://127.0.0.1:8000",
+    *     description="Servidor local"
+    * )
+    *
+    * @OA\SecurityScheme(
+    *     securityScheme="bearerAuth",
+    *     type="http",
+    *     scheme="bearer",
+    *     bearerFormat="JWT",
+    *     description="Usa un token JWT para autenticar"
+    * )
+    */
+   ```
+
+4. **Agregar anotaciones en cada controlador o endpoint**
+   Ejemplo de anotación en un método `index`:
+   ```php
+   /**
+    * @OA\Get(
+    *     path="/api/productos",
+    *     summary="Obtener lista de productos",
+    *     tags={"Productos"},
+    *     security={{"bearerAuth":{}}},
+    *     @OA\Response(
+    *         response=200,
+    *         description="Lista de productos obtenida correctamente"
+    *     ),
+    *     @OA\Response(
+    *         response=401,
+    *         description="No autorizado - Token ausente o inválido"
+    *     )
+    * )
+    */
+   ```
+
+5. **Generar la documentación**
+   ```
+   php artisan l5-swagger:generate
+   ```
+
+6. **Acceder a la documentación**
+   Luego de generar los archivos, la documentación estará disponible en:
+   ```
+   http://localhost:8000/api/documentation
+   ```
+
+7. **Ejemplo de rutas protegidas**
+   En `routes/api.php`:
+   ```php
+   Route::post('/register', [AuthController::class, 'register']);
+   Route::post('/login', [AuthController::class, 'login']);
+
+   Route::group(['middleware' => ['jwt.auth']], function () {
+       Route::get('me', [AuthController::class, 'me']);
+       Route::post('logout', [AuthController::class, 'logout']);
+       Route::apiResource('productos', ProductoController::class);
+   });
+   ```
+
+8. **Anotaciones de autenticación**
+   Ejemplo de documentación para el login:
+   ```php
+   /**
+    * @OA\Post(
+    *     path="/api/login",
+    *     summary="Iniciar sesión y obtener token JWT",
+    *     tags={"Autenticación"},
+    *     @OA\RequestBody(
+    *         required=true,
+    *         @OA\JsonContent(
+    *             required={"email","password"},
+    *             @OA\Property(property="email", type="string", format="email", example="usuario@ejemplo.com"),
+    *             @OA\Property(property="password", type="string", example="123456")
+    *         )
+    *     ),
+    *     @OA\Response(response=200, description="Login exitoso, devuelve token JWT"),
+    *     @OA\Response(response=401, description="Credenciales inválidas")
+    * )
+    */
+   ```
+
+9. **Regenerar la documentación**
+   Cada vez que se modifiquen o agreguen anotaciones:
+   ```
+   php artisan l5-swagger:generate
+   ```
+
+---
+
+## Resultado Final
+
+* El **frontend Angular** estará disponible en:  
+  [http://localhost:4200](http://localhost:4200)
+
+* El **backend Laravel** funcionará en:  
+  [http://localhost:8000](http://localhost:8000)
+
+* La **documentación Swagger con autenticación JWT** estará disponible en:  
+  [http://localhost:8000/api/documentation](http://localhost:8000/api/documentation)
+
+---
+
+## Enlaces
+
+* [Repositorio del Proyecto](https://github.com/mary-s-rgb)
+* [Documentación de Angular](https://angular.io/docs)
+* [Documentación de Laravel](https://laravel.com/docs)
+* [L5-Swagger (Laravel Swagger)](https://github.com/DarkaOnLine/L5-Swagger)
+* [Swagger Oficial](https://swagger.io/)
