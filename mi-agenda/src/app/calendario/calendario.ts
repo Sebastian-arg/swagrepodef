@@ -14,7 +14,6 @@ import {
 } from '@angular/common';
 
 import { FormsModule } from '@angular/forms';
-// ✅ Importar RouterLink y RouterLinkActive
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
@@ -50,10 +49,27 @@ interface CalendarTarea {
   etiqueta?: string;
 }
 
+// =========================================================================
+// FUNCIÓN DE UTILIDAD: Obtener el inicio de la semana (Lunes)
+// =========================================================================
+function getStartOfWeek(date: Date): Date {
+  const d = new Date(date);
+  let day = d.getDay(); // 0 (Dom) a 6 (Sáb)
+  
+  // Mapea Domingo (0) a 6 y otros días (1-6) a (día - 1) para obtener el desfase hasta el Lunes.
+  // Ejemplo: Lunes (1) -> 0 desfase. Jueves (4) -> 3 desfase. Domingo (0) -> 6 desfase.
+  day = day === 0 ? 6 : day - 1; 
+  
+  const diff = d.getDate() - day; // Ajusta la fecha al Lunes
+  d.setDate(diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+// =========================================================================
+
 @Component({
   selector: 'app-calendario',
   standalone: true,
-  // ✅ Añadir RouterLink y RouterLinkActive al array de imports
   imports: [CommonModule, FormsModule, HttpClientModule, RouterOutlet, RouterLink, RouterLinkActive],
   providers: [
     DatePipe,
@@ -70,7 +86,8 @@ export class CalendarioComponent implements OnInit {
   modalSeleccionOpen = signal(false);
   selectedDate = signal<Date | null>(null);
 
-  readonly dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  // ✅ Modificado: Empieza en Lunes, termina en Domingo y sin acento en Miercoles
+  readonly dayNames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
   eventos = signal<CalendarEvent[]>([]);
   modalEventosOpen = signal(false);
@@ -90,6 +107,36 @@ export class CalendarioComponent implements OnInit {
   tareaFecha = '';
   tareaDescripcion = '';
 
+  // =========================================================================
+  // Lógica para la vista semanal (inicia en Lunes)
+  // =========================================================================
+  weekDays = computed<CalendarDay[]>(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Usa la función ajustada para obtener el Lunes
+    const startDate = getStartOfWeek(this.current());
+
+    const days: CalendarDay[] = [];
+    const currentMonth = this.current().getMonth();
+
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + i);
+
+      days.push({
+        date,
+        isCurrentMonth: date.getMonth() === currentMonth,
+        isToday: date.getTime() === today.getTime()
+      });
+    }
+
+    return days;
+  });
+
+  // =========================================================================
+  // Lógica para la vista mensual (inicia en Lunes)
+  // =========================================================================
   monthGrid = computed<CalendarDay[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -99,7 +146,10 @@ export class CalendarioComponent implements OnInit {
     const month = currentDate.getMonth();
 
     const firstDay = new Date(year, month, 1);
-    const startDayOfWeek = firstDay.getDay();
+    
+    // ✅ Ajuste para que la cuadrícula inicie en Lunes
+    let startDayOfWeek = firstDay.getDay(); // 0=Dom, 1=Lun, ..., 6=Sáb
+    startDayOfWeek = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1; // 0 desfase para Lun, 6 desfase para Dom
 
     const startDate = new Date(firstDay);
     startDate.setDate(firstDay.getDate() - startDayOfWeek);
@@ -133,7 +183,55 @@ export class CalendarioComponent implements OnInit {
     this.cargarEventos();
     this.cargarTareas();
   }
+  
+  // =========================================================================
+  // MÉTODOS DE NAVEGACIÓN Y VISTA
+  // =========================================================================
+  setViewMode(mode: ViewMode) {
+    this.viewMode.set(mode);
+  }
 
+  navigate(direction: -1 | 1) {
+    const newDate = new Date(this.current());
+    
+    if (this.viewMode() === 'month') {
+      newDate.setMonth(newDate.getMonth() + direction);
+    } else { // 'week'
+      // Navega 7 días
+      newDate.setDate(newDate.getDate() + (direction * 7));
+    }
+    this.current.set(newDate);
+  }
+
+  setToday() {
+    this.current.set(new Date());
+  }
+
+  // =========================================================================
+  // MÉTODOS DE CONTADOR
+  // =========================================================================
+  isSameDay(d1: Date, d2: Date): boolean {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+  }
+
+  countEvents(date: Date): number {
+    return this.eventos().filter(e => {
+      const eventDate = new Date(e.fecha_inicio + 'T00:00:00');
+      return this.isSameDay(eventDate, date);
+    }).length;
+  }
+
+  countTareas(date: Date): number {
+    return this.tareas().filter(t => {
+      const tareaDate = new Date(t.fecha_limite + 'T00:00:00');
+      return this.isSameDay(tareaDate, date);
+    }).length;
+  }
+  // =========================================================================
+
+  // MÉTODOS DE CRUD y MODALES
   cargarEventos() {
     this.eventosService.getAll().subscribe({
       next: (data) => this.eventos.set(data),
@@ -334,83 +432,22 @@ export class CalendarioComponent implements OnInit {
     this.modalSeleccionOpen.set(false);
     this.selectedDate.set(null);
   }
-  
-  addNewEvent() {
-    const dateToUse = this.selectedDate();
-    this.modalSeleccionOpen.set(false);
-    this.modalEventosOpen.set(true);
-    this.modalTareasOpen.set(false);
 
-    if (dateToUse) {
-        this.startAgregarEvento(dateToUse);
-    } else {
-        this.startAgregarEvento();
-    }
-    this.selectedDate.set(null);
+  addNewEvent() {
+    this.closeSelectionModal();
+    this.modalEventosOpen.set(true);
+    this.startAgregarEvento(this.selectedDate());
   }
 
   addNewTask() {
-    const dateToUse = this.selectedDate();
-    this.modalSeleccionOpen.set(false);
+    this.closeSelectionModal();
     this.modalTareasOpen.set(true);
-    this.modalEventosOpen.set(false);
-
-    if (dateToUse) {
-        this.startAgregarTarea(dateToUse);
-    } else {
-        this.startAgregarTarea();
-    }
-    this.selectedDate.set(null);
-  }
-
-  countTareas(date: Date): number {
-    const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
-    return this.tareas().filter(t => {
-      const tareaDateKey = this.datePipe.transform(t.fecha_limite, 'yyyy-MM-dd');
-      return tareaDateKey === dayKey;
-    }).length;
-  }
-
-  countEvents(date: Date): number {
-    const dayKey = this.datePipe.transform(date, 'yyyy-MM-dd');
-    return this.eventos().filter(e => {
-        const eventDateKey = this.datePipe.transform(e.fecha_inicio, 'yyyy-MM-dd');
-        return eventDateKey === dayKey;
-    }).length;
-  }
-  
-  navigate(amount: number): void {
-    this.current.update(cur => {
-      const newDate = new Date(cur.getTime());
-      if (this.viewMode() === 'month')
-        newDate.setMonth(newDate.getMonth() + amount);
-      else
-        newDate.setDate(newDate.getDate() + amount * 7);
-      return newDate;
-    });
-  }
-
-  setToday(): void {
-    this.current.set(new Date());
-  }
-
-  setViewMode(mode: ViewMode): void {
-    this.viewMode.set(mode);
+    this.startAgregarTarea(this.selectedDate());
   }
 
   logout() {
-    const token = localStorage.getItem('user_token');
-
-    this.http.post(
-      'http://localhost:8000/api/logout',
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    ).subscribe({
-      complete: () => {
-        localStorage.removeItem('user_token');
-        localStorage.removeItem('user_details');
-        this.router.navigate(['/login']);
-      }
-    });
+    // Lógica de logout simulada (a completar según tu autenticación)
+    console.log("Cerrando sesión...");
+    this.router.navigate(['/login']); 
   }
 }

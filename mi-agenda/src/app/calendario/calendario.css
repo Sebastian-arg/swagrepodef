@@ -653,3 +653,92 @@
 .switch input:checked + .slider:before {
   transform: translateX(24px);
 }
+
+/* ----------------------------------------------------
+ * 9. CALENDAR WEEK VIEW (Compacto - 1 Fila)
+ * ----------------------------------------------------
+ */
+
+.calendar-week-view-compact {
+  /* Contenedor principal de la vista semanal. */
+  display: flex;
+  flex-direction: column;
+  /* Quita la altura mínima fija que causa que la cuadrícula se estire */
+  min-height: auto; 
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--accent-color);
+}
+
+.day-name-row {
+  /* Fila de nombres de días */
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px; 
+  background-color: var(--accent-color);
+}
+
+.day-name-row .day-name {
+    /* Mantiene el estilo de los encabezados (Morado Suave) */
+    background-color: #fff6fb;
+    color: var(--text-soft); 
+    font-weight: 600;
+    padding: 8px 0;
+    font-size: 0.875rem; 
+}
+
+
+.week-day-grid-compact {
+  /* Fila de Contenido de los Días: Una sola línea de cuadrícula de 7 columnas */
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  /* Altura fija y corta. Es clave para que no haya espacio para una segunda fila. */
+  height: 120px; 
+  gap: 1px;
+  background-color: var(--accent-color); 
+}
+
+.week-day-cell {
+  /* Estilo base de la celda de día para la semana */
+  background-color: #FFFFFF;
+  padding: 8px;
+  text-align: right; 
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; 
+  justify-content: flex-start; /* Alinea el contenido arriba */
+  position: relative;
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+/* ✅ Para lograr el efecto de fondos alternos como en tu imagen */
+.week-day-grid-compact .week-day-cell:nth-child(odd) {
+    background-color: #f7f7f7; /* Blanco muy suave */
+}
+.week-day-grid-compact .week-day-cell:nth-child(even) {
+    background-color: #e6f7ff; /* Azul claro para contraste */
+}
+
+
+.week-day-cell span:first-child {
+  /* Estilo del número del día */
+  align-self: flex-end; 
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--dark-color);
+  line-height: 1.2;
+}
+
+.week-day-cell .event-marker {
+  /* Marcadores alineados a la izquierda */
+  align-self: flex-start; 
+  margin-top: 4px;
+}
+
+.week-day-cell.is-today {
+  /* Estilo para el día de hoy */
+  background-color: var(--today-bg) !important; 
+  border: 1px solid var(--accent-color);
+  z-index: 10;
+}
