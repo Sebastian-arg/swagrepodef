@@ -7,6 +7,12 @@
 </a>
 
 <nav class="menu">
+
+    <a routerLink="/calendario" routerLinkActive="active">
+      <i class="fa-regular fa-calendar"></i>
+      <span>Calendario</span>
+    </a>
+
   <button class="menu-item" (click)="openEventosModalList()">
     <i class="fa-regular fa-clock"></i>
     <span>Eventos</span>
@@ -169,6 +175,21 @@
       <div class="event-item">
         <div class="event-info">
           <div class="event-title">{{ evt.titulo }}</div>
+
+
+          <div class="event-time">
+            @if (evt.fecha_inicio.includes('T00:00:00') || !evt.fecha_inicio.includes('T')) {
+              <span class="badge-dia">Todo el día</span>
+            } @else {
+              <span>
+                {{ evt.fecha_inicio | date:'shortTime' }}
+                @if (evt.fecha_fin) {
+                  - {{ evt.fecha_fin | date:'shortTime' }}
+                }
+              </span>
+            }
+          </div>       
+
           <div class="event-date">{{ evt.fecha_inicio | date:'EEEE d MMM y' }}</div>
           @if (evt.descripcion) {
           <div class="event-desc">{{ evt.descripcion }}</div>
@@ -189,10 +210,32 @@
     <h3>@if (editandoEvento() !== null) { Editar Evento } @else { Nuevo Evento }</h3>
     <label for="eventoTitulo">Título</label>
     <input type="text" id="eventoTitulo" [(ngModel)]="eventoTitulo" />
-    <label for="eventoFecha">Fecha</label>
+
+<label for="eventoFecha">Fecha</label>
     <input type="date" id="eventoFecha" [(ngModel)]="eventoFecha" />
+
+    <div class="toggle-container">
+      <label class="switch">
+        <input type="checkbox" [(ngModel)]="eventoTodoElDia" />
+        <span class="slider"></span>
+      </label>
+      <span>{{ eventoTodoElDia ?
+        'Todo el día' : 'Evento con horario' }}</span>
+    </div>
+    
+    @if (!eventoTodoElDia) {
+      <div class="horarios-container">
+        <label for="horaInicio">Hora de inicio</label>
+        <input type="time" id="horaInicio" [(ngModel)]="eventoHoraInicio" />
+      
+        <label for="horaFin">Hora de fin</label>
+        <input type="time" id="horaFin" [(ngModel)]="eventoHoraFin" />
+      </div>
+    }
+
     <label for="eventoDescripcion">Descripción</label>
     <textarea rows="3" id="eventoDescripcion" [(ngModel)]="eventoDescripcion"></textarea>
+
     <div class="form-actions">
       <button class="btn-cancel" (click)="cancelarFormularioEvento()">Cancelar</button>
       <button class="btn-save" (click)="guardarEvento()">Guardar</button>

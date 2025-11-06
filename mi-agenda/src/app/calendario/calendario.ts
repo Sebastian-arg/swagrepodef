@@ -49,9 +49,9 @@ interface CalendarTarea {
   etiqueta?: string;
 }
 
-// =========================================================================
+// 
 // FUNCIÓN DE UTILIDAD: Obtener el inicio de la semana (Lunes)
-// =========================================================================
+// 
 function getStartOfWeek(date: Date): Date {
   const d = new Date(date);
   let day = d.getDay(); // 0 (Dom) a 6 (Sáb)
@@ -65,7 +65,7 @@ function getStartOfWeek(date: Date): Date {
   d.setHours(0, 0, 0, 0);
   return d;
 }
-// =========================================================================
+// 
 
 @Component({
   selector: 'app-calendario',
@@ -98,6 +98,11 @@ export class CalendarioComponent implements OnInit {
   eventoFecha = '';
   eventoDescripcion = '';
 
+  //hora
+  eventoHoraInicio = ''; // Inicializado a cadena vacía
+  eventoHoraFin = ''; // Inicializado a cadena vacía
+  eventoTodoElDia = true; // Por defecto es 'Todo el día'
+
   tareas = signal<CalendarTarea[]>([]);
   modalTareasOpen = signal(false);
   agregandoTarea = signal(false);
@@ -107,9 +112,9 @@ export class CalendarioComponent implements OnInit {
   tareaFecha = '';
   tareaDescripcion = '';
 
-  // =========================================================================
+  // 
   // Lógica para la vista semanal (inicia en Lunes)
-  // =========================================================================
+  // 
   weekDays = computed<CalendarDay[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -134,9 +139,9 @@ export class CalendarioComponent implements OnInit {
     return days;
   });
 
-  // =========================================================================
+  // 
   // Lógica para la vista mensual (inicia en Lunes)
-  // =========================================================================
+  // 
   monthGrid = computed<CalendarDay[]>(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -184,9 +189,7 @@ export class CalendarioComponent implements OnInit {
     this.cargarTareas();
   }
   
-  // =========================================================================
   // MÉTODOS DE NAVEGACIÓN Y VISTA
-  // =========================================================================
   setViewMode(mode: ViewMode) {
     this.viewMode.set(mode);
   }
@@ -207,9 +210,9 @@ export class CalendarioComponent implements OnInit {
     this.current.set(new Date());
   }
 
-  // =========================================================================
+  // 
   // MÉTODOS DE CONTADOR
-  // =========================================================================
+  // 
   isSameDay(d1: Date, d2: Date): boolean {
     return d1.getFullYear() === d2.getFullYear() &&
            d1.getMonth() === d2.getMonth() &&
@@ -229,7 +232,7 @@ export class CalendarioComponent implements OnInit {
       return this.isSameDay(tareaDate, date);
     }).length;
   }
-  // =========================================================================
+  // 
 
   // MÉTODOS DE CRUD y MODALES
   cargarEventos() {
@@ -266,6 +269,8 @@ export class CalendarioComponent implements OnInit {
     const date = dateToPreload || new Date();
     this.eventoFecha = this.datePipe.transform(date, 'yyyy-MM-dd') || '';
     this.eventoDescripcion = '';
+    //hora
+    
   }
 
   startEditarEvento(id: number) {
@@ -276,8 +281,16 @@ export class CalendarioComponent implements OnInit {
     this.editandoEvento.set(id);
 
     this.eventoTitulo = evt.titulo;
-    this.eventoFecha = evt.fecha_inicio;
+
+    //hora
+    this.eventoFecha = evt.fecha_inicio.split('T')[0];
+    this.eventoHoraInicio = evt.fecha_inicio.split('T')[1]?.slice(0,5) || '';
+    this.eventoHoraFin = evt.fecha_fin ? evt.fecha_fin.split('T')[1]?.slice(0,5) || '' : '';
+    
     this.eventoDescripcion = evt.descripcion || '';
+    
+    // ✅ Configurar el switch: si no hay hora de inicio, es "Todo el día"
+    this.eventoTodoElDia = !this.eventoHoraInicio;
   }
 
   cancelarFormularioEvento(close = true) {
@@ -286,17 +299,38 @@ export class CalendarioComponent implements OnInit {
     this.eventoTitulo = '';
     this.eventoFecha = '';
     this.eventoDescripcion = '';
-
+  // ✅ Resetear nuevos campos
+    this.eventoHoraInicio = '';
+    this.eventoHoraFin = '';
+    this.eventoTodoElDia = true;
     if (close) this.modalEventosOpen.set(false);
   }
 
+  // calendario3.txt (Parte TypeScript)
+
   guardarEvento() {
-    const data = {
+    // ✅ Adaptar data para soportar la construcción de fecha/hora
+    const data: { 
+      titulo: string; 
+      descripcion: string; 
+      fecha_inicio?: string; 
+      fecha_fin?: string; 
+    } = {
       titulo: this.eventoTitulo.trim(),
-      fecha_inicio: this.eventoFecha,
-      descripcion: this.eventoDescripcion
+      descripcion: this.eventoDescripcion,
     };
 
+    // ✅ Construir la fecha de inicio completa (fecha + hora si no es todo el día)
+    const fechaInicioCompleta = this.eventoHoraInicio && !this.eventoTodoElDia ?
+      `${this.eventoFecha}T${this.eventoHoraInicio}:00` : `${this.eventoFecha}T00:00:00`;
+
+    // ✅ Construir la fecha de fin completa (si existe y no es todo el día)
+    const fechaFinCompleta = this.eventoHoraFin && !this.eventoTodoElDia ?
+      `${this.eventoFecha}T${this.eventoHoraFin}:00` : undefined;
+
+    data.fecha_inicio = fechaInicioCompleta;
+    data.fecha_fin = fechaFinCompleta;
+    
     if (!data.titulo || !data.fecha_inicio) {
       console.warn('Completar título y fecha');
       return;
@@ -306,21 +340,22 @@ export class CalendarioComponent implements OnInit {
       const id = this.editandoEvento()!;
       this.eventosService.update(id, data).subscribe({
         next: (actualizado) => {
-          this.eventos.update(prev =>
-            prev.map(e => e.id === id ? actualizado : e)
-          );
+          this.eventos.update(prev => prev.map(e => e.id === id ? actualizado : e));
           this.cancelarFormularioEvento();
-        }
+        },
+        error: (err) => console.error('Error actualizando evento', err)
       });
-      return;
+    } else {
+      this.eventosService.create(data as any).subscribe({
+        next: (nuevo) => {
+          this.eventos.update(prev => [...prev, nuevo]);
+          this.cancelarFormularioEvento();
+        },
+        error: (err) => console.error('Error creando evento', err)
+      });
     }
+  
 
-    this.eventosService.create(data).subscribe({
-      next: (nuevo) => {
-        this.eventos.update(prev => [...prev, nuevo]);
-        this.cancelarFormularioEvento();
-      }
-    });
   }
 
   eliminarEvento(id: number) {
