@@ -786,6 +786,9 @@
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
+                "description": "Autenticación con Bearer Token (JWT)",
+                "name": "Authorization",
+                "in": "header",
                 "bearerFormat": "JWT",
                 "scheme": "bearer"
             }

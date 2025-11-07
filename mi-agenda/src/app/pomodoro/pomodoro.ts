@@ -1,6 +1,5 @@
 import { Component, OnDestroy, signal, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ExpertoDiezmilComponent } from '../experto-diezmil/experto-diezmil.component';
 
 // ✅ Definimos los tipos para los modos del temporizador
 type TimerMode = 'pomodoro' | 'shortBreak' | 'longBreak';
@@ -8,7 +7,7 @@ type TimerMode = 'pomodoro' | 'shortBreak' | 'longBreak';
 @Component({
   selector: 'app-pomodoro',
   standalone: true,
-  imports: [CommonModule, ExpertoDiezmilComponent],
+  imports: [CommonModule],
   templateUrl: './pomodoro.html',
   styleUrls: ['./pomodoro.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
