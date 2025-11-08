@@ -20,19 +20,13 @@ use Illuminate\Routing\Controller as BaseController;
  *          url="http://www.apache.org/licenses/LICENSE-2.0.html"
  *      )
  * )
-
-* @OA\SecurityScheme(
- * type="http",
- * description="Autenticación con Bearer Token (JWT)",
- * name="Authorization",
- * in="header",
- * scheme="bearer",
- * bearerFormat="JWT",
- * securityScheme="bearerAuth"
- * )
- * 
- * @OA\Security(
- * security={{"bearerAuth": {}}}
+ *
+ * @OA\SecurityScheme(
+ *      securityScheme="sanctum",
+ *      type="apiKey",
+ *      name="Authorization",
+ *      in="header",
+ *      description="Enter the Bearer token"
  * )
  */
 class Controller extends BaseController
