@@ -429,6 +429,37 @@
   margin: 0 auto;
 }
 
+/* Navegación de meses en modales */
+.modal-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--accent-color);
+  margin-bottom: 12px;
+}
+
+.nav-btn {
+  background: var(--secondary-color);
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-main);
+  transition: background-color 0.2s;
+}
+
+.nav-btn:hover {
+  background-color: var(--accent-color);
+}
+
+.current-month {
+  font-weight: 700;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+}
+
 /* Cabecera modal */
 .modal-header {
   display: flex;

@@ -86,11 +86,16 @@ export class CalendarioComponent implements OnInit {
   modalSeleccionOpen = signal(false);
   selectedDate = signal<Date | null>(null);
 
+  // Meses actuales para navegación en modales
+  currentMonthEventos = signal<Date>(new Date());
+  currentMonthTareas = signal<Date>(new Date());
+
   // ✅ Modificado: Empieza en Lunes, termina en Domingo y sin acento en Miercoles
   readonly dayNames = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
   eventos = signal<CalendarEvent[]>([]);
   modalEventosOpen = signal(false);
+  modalAgregarEventoOpen = signal(false);
   agregandoEvento = signal(false);
   editandoEvento = signal<number | null>(null);
 
@@ -105,6 +110,7 @@ export class CalendarioComponent implements OnInit {
 
   tareas = signal<CalendarTarea[]>([]);
   modalTareasOpen = signal(false);
+  modalAgregarTareaOpen = signal(false);
   agregandoTarea = signal(false);
   editandoTarea = signal<number | null>(null);
 
@@ -221,7 +227,7 @@ export class CalendarioComponent implements OnInit {
 
   countEvents(date: Date): number {
     return this.eventos().filter(e => {
-      const eventDate = new Date(e.fecha_inicio + 'T00:00:00');
+      const eventDate = new Date(e.fecha_inicio.split('T')[0]);
       return this.isSameDay(eventDate, date);
     }).length;
   }
@@ -249,6 +255,39 @@ export class CalendarioComponent implements OnInit {
     });
   }
 
+  // Eventos filtrados por mes actual en modal
+  eventosFiltrados = computed(() => {
+    const currentMonth = this.currentMonthEventos();
+    return this.eventos().filter(e => {
+      const eventDate = new Date(e.fecha_inicio.split('T')[0]);
+      return eventDate.getFullYear() === currentMonth.getFullYear() &&
+             eventDate.getMonth() === currentMonth.getMonth();
+    });
+  });
+
+  // Tareas filtradas por mes actual en modal
+  tareasFiltradas = computed(() => {
+    const currentMonth = this.currentMonthTareas();
+    return this.tareas().filter(t => {
+      const tareaDate = new Date(t.fecha_limite);
+      return tareaDate.getFullYear() === currentMonth.getFullYear() &&
+             tareaDate.getMonth() === currentMonth.getMonth();
+    });
+  });
+
+  // Navegación de meses en modales
+  navigateMonthEventos(direction: -1 | 1) {
+    const newDate = new Date(this.currentMonthEventos());
+    newDate.setMonth(newDate.getMonth() + direction);
+    this.currentMonthEventos.set(newDate);
+  }
+
+  navigateMonthTareas(direction: -1 | 1) {
+    const newDate = new Date(this.currentMonthTareas());
+    newDate.setMonth(newDate.getMonth() + direction);
+    this.currentMonthTareas.set(newDate);
+  }
+
   openEventosModalList() {
     this.modalEventosOpen.set(true);
     this.modalTareasOpen.set(false);
@@ -262,6 +301,19 @@ export class CalendarioComponent implements OnInit {
     this.cancelarFormularioEvento(false);
   }
 
+  openAgregarEventoModal() {
+    this.modalAgregarEventoOpen.set(true);
+    this.modalEventosOpen.set(false);
+    this.modalTareasOpen.set(false);
+    this.modalSeleccionOpen.set(false);
+    this.startAgregarEvento();
+  }
+
+  closeAgregarEventoModal() {
+    this.modalAgregarEventoOpen.set(false);
+    this.cancelarFormularioEvento(false);
+  }
+
   startAgregarEvento(dateToPreload?: Date | null) {
     this.agregandoEvento.set(true);
     this.editandoEvento.set(null);
@@ -270,7 +322,7 @@ export class CalendarioComponent implements OnInit {
     this.eventoFecha = this.datePipe.transform(date, 'yyyy-MM-dd') || '';
     this.eventoDescripcion = '';
     //hora
-    
+
   }
 
   startEditarEvento(id: number) {
@@ -378,6 +430,19 @@ export class CalendarioComponent implements OnInit {
 
   closeTareasModal() {
     this.modalTareasOpen.set(false);
+  }
+
+  openAgregarTareaModal() {
+    this.modalAgregarTareaOpen.set(true);
+    this.modalEventosOpen.set(false);
+    this.modalTareasOpen.set(false);
+    this.modalSeleccionOpen.set(false);
+    this.startAgregarTarea();
+  }
+
+  closeAgregarTareaModal() {
+    this.modalAgregarTareaOpen.set(false);
+    this.cancelarFormularioTarea(false);
   }
 
   startAgregarTarea(dateToPreload?: Date | null) {
