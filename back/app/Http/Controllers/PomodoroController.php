@@ -9,6 +9,31 @@ use Illuminate\Support\Facades\Auth;
 class PomodoroController extends Controller
 {
     /**
+     * @OA\Get(
+     *     path="/api/pomodoros",
+     *     summary="Obtiene el número total de pomodoros completados por el usuario",
+     *     tags={"Pomodoros"},
+     *     security={{"sanctum": {}}},
+     *     @OA\Response(
+     *         response=200,
+     *         description="Total de pomodoros devuelto exitosamente",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="count", type="integer", example=42)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="No autenticado"
+     *     )
+     * )
+     */
+    public function index()
+    {
+        $count = Pomodoro::where('user_id', Auth::id())->count();
+        return response()->json(['count' => $count]);
+    }
+
+    /**
      * @OA\Post(
      *     path="/api/pomodoros",
      *     summary="Guarda una sesión de pomodoro completada",

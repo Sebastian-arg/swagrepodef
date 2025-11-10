@@ -25,6 +25,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tareas/{id}', [TareaController::class, 'update']);
     Route::delete('/tareas/{id}', [TareaController::class, 'destroy']);
 
+    Route::get('/pomodoros', [PomodoroController::class, 'index']); // <-- AÑADIDA
     Route::post('/pomodoros', [PomodoroController::class, 'store']);
 
 

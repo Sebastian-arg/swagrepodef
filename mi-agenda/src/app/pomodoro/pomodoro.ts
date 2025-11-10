@@ -1,4 +1,4 @@
-import { Component, OnDestroy, signal, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PomodoroService } from '../services/pomodoro.service';
 
@@ -13,7 +13,7 @@ type TimerMode = 'pomodoro' | 'shortBreak' | 'longBreak';
   styleUrls: ['./pomodoro.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PomodoroComponent implements OnDestroy {
+export class PomodoroComponent implements OnInit, OnDestroy {
 
   // ====================================
   // ✅ ESTADO CON SEÑALES
@@ -58,6 +58,16 @@ export class PomodoroComponent implements OnDestroy {
 
   constructor(private pomodoroService: PomodoroService) {
     this.audio = new Audio('assets/notification.mp3');
+  }
+
+  ngOnInit(): void {
+    this.pomodoroService.getPomodorosCount().subscribe({
+      next: (count) => {
+        this.pomodoroCount.set(count);
+        console.log('Pomodoros count loaded!');
+      },
+      error: (err) => console.error('Error loading pomodoros count:', err)
+    });
   }
 
   ngOnDestroy(): void {
