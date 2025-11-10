@@ -6,13 +6,6 @@ use App\Models\Pomodoro;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-/**
- * @OA\Info(
- *      version="1.0.0",
- *      title="Mi Agenda API",
- *      description="API para la aplicación Mi Agenda"
- * )
- */
 class PomodoroController extends Controller
 {
     /**
