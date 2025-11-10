@@ -1,5 +1,6 @@
 import { Component, OnDestroy, signal, ChangeDetectionStrategy, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { PomodoroService } from '../services/pomodoro.service';
 
 // ✅ Definimos los tipos para los modos del temporizador
 type TimerMode = 'pomodoro' | 'shortBreak' | 'longBreak';
@@ -55,7 +56,7 @@ export class PomodoroComponent implements OnDestroy {
   // ✅ CICLO DE VIDA Y CONSTRUCTOR
   // ====================================
 
-  constructor() {
+  constructor(private pomodoroService: PomodoroService) {
     this.audio = new Audio('assets/notification.mp3');
   }
 
@@ -109,6 +110,12 @@ export class PomodoroComponent implements OnDestroy {
 
     if (this.mode() === 'pomodoro') {
       this.pomodoroCount.update(count => count + 1);
+
+      this.pomodoroService.savePomodoro().subscribe({
+        next: () => console.log('Pomodoro session saved!'),
+        error: (err) => console.error('Error saving pomodoro session:', err)
+      });
+
       // Si completamos 4 pomodoros, tomamos un descanso largo. Si no, uno corto.
       const nextMode = this.pomodoroCount() % 4 === 0 ? 'longBreak' : 'shortBreak';
       this.setMode(nextMode);

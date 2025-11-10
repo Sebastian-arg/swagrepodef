@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventoController;
 use App\Http\Controllers\TareaController;
+use App\Http\Controllers\PomodoroController;
 
 
 Route::post('/login', [AuthController::class, 'login']);
@@ -23,6 +24,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tareas/{id}', [TareaController::class, 'show']);
     Route::put('/tareas/{id}', [TareaController::class, 'update']);
     Route::delete('/tareas/{id}', [TareaController::class, 'destroy']);
+
+    Route::post('/pomodoros', [PomodoroController::class, 'store']);
 
 
 });
